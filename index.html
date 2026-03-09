@@ -6,1053 +6,543 @@
 <title>Corteza Oculta — Ordena en línea</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
 <style>
-  :root {
-    --bg:       #0F0D0A;
-    --bg2:      #1A1714;
-    --bg3:      #242018;
-    --gold:     #E8B84B;
-    --gold-dim: #E8B84B22;
-    --terra:    #E07840;
-    --white:    #F0EDE6;
-    --ink2:     #B8B0A4;
-    --ink3:     #6B6560;
-    --line:     #2E2A25;
-    --green:    #4CAF7D;
-    --green-dim:#4CAF7D22;
-    --red:      #E05555;
-    --red-dim:  #E0555522;
-    --radius:   14px;
-    --radius-sm:10px;
-    --radius-pill: 999px;
-  }
+:root {
+  --bg:       #0F0D0A;
+  --bg2:      #1A1714;
+  --bg3:      #242018;
+  --gold:     #E8B84B;
+  --gold-dim: #E8B84B22;
+  --terra:    #E07840;
+  --white:    #F0EDE6;
+  --ink2:     #B8B0A4;
+  --ink3:     #6B6560;
+  --line:     #2E2A25;
+  --green:    #4CAF7D;
+  --green-dim:#4CAF7D22;
+  --red:      #E05555;
+  --red-dim:  #E0555522;
+  --r:        14px;
+  --rsm:      10px;
+  --rpill:    999px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { background: var(--bg); color: var(--white); font-family: 'DM Sans', sans-serif; min-height: 100dvh; overflow-x: hidden; }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+.header {
+  position: sticky; top: 0; z-index: 50;
+  background: var(--bg); border-bottom: 1px solid var(--line);
+  padding: 12px 18px; display: flex; align-items: center; gap: 10px;
+}
+.logo { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 900; color: var(--gold); }
+.logo-sub { font-size: 11px; color: var(--ink3); }
 
-  body {
-    background: var(--bg);
-    color: var(--white);
-    font-family: 'DM Sans', sans-serif;
-    min-height: 100dvh;
-    overflow-x: hidden;
-  }
+.section { padding: 18px 14px 0; }
+.section-title { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; color: var(--white); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+.products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-bottom: 20px; }
+.product-card { background: var(--bg2); border: 1.5px solid var(--line); border-radius: var(--r); padding: 14px; cursor: pointer; transition: border-color .15s, transform .1s; position: relative; }
+.product-card:active { transform: scale(.97); }
+.product-card:hover  { border-color: var(--gold); }
+.pc-emoji { font-size: 34px; line-height: 1; margin-bottom: 8px; display: block; }
+.pc-name  { font-size: 14px; font-weight: 700; color: var(--white); margin-bottom: 3px; line-height: 1.3; }
+.pc-price { font-size: 12px; color: var(--gold); font-weight: 600; }
+.unavail-overlay { position: absolute; inset: 0; background: rgba(15,13,10,.82); display: flex; align-items: center; justify-content: center; border-radius: var(--r); font-size: 12px; font-weight: 700; color: var(--ink3); }
 
-  /* ── HEADER ── */
-  .header {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    background: var(--bg);
-    border-bottom: 1px solid var(--line);
-    padding: 14px 20px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .header-logo { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 900; color: var(--gold); letter-spacing: -0.5px; }
-  .header-sub  { font-size: 12px; color: var(--ink3); font-weight: 400; }
-  .cart-btn {
-    margin-left: auto;
-    background: var(--gold-dim);
-    border: 1.5px solid var(--gold);
-    color: var(--gold);
-    border-radius: var(--radius-sm);
-    padding: 8px 14px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: background .15s;
-  }
-  .cart-btn:hover { background: var(--gold); color: var(--bg); }
-  .cart-badge {
-    background: var(--terra);
-    color: white;
-    border-radius: 99px;
-    font-size: 11px;
-    font-weight: 700;
-    padding: 1px 6px;
-    min-width: 20px;
-    text-align: center;
-  }
+/* BARRA FIJA */
+.bottom-bar {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 60;
+  background: var(--bg2); border-top: 2px solid var(--gold);
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+  transform: translateY(100%); transition: transform .3s cubic-bezier(.32,.72,0,1);
+}
+.bottom-bar.visible { transform: translateY(0); }
+.bbi { display: flex; align-items: center; gap: 12px; }
+.bb-left { flex: 1; }
+.bb-count { font-size: 12px; color: var(--ink2); }
+.bb-total { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 900; color: var(--gold); }
+.bb-btn { background: var(--gold); color: var(--bg); border: none; border-radius: var(--rsm); padding: 13px 22px; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 800; cursor: pointer; white-space: nowrap; }
+.bb-btn:hover { opacity: .88; }
+.menu-spacer { height: 88px; }
 
-  /* ── SECCIONES ── */
-  .section { padding: 20px 16px 0; }
-  .section-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--white);
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
+/* OVERLAY / SHEET */
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 100; opacity: 0; pointer-events: none; transition: opacity .25s; }
+.overlay.open { opacity: 1; pointer-events: all; }
+.sheet { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg2); border-radius: 22px 22px 0 0; border-top: 1.5px solid var(--line); z-index: 101; max-height: 93dvh; overflow-y: auto; transform: translateY(100%); transition: transform .3s cubic-bezier(.32,.72,0,1); padding-bottom: env(safe-area-inset-bottom, 16px); }
+.sheet.open { transform: translateY(0); }
+.handle { width: 38px; height: 4px; background: var(--line); border-radius: 99px; margin: 12px auto 2px; }
+.sc { padding: 0 16px 28px; }
+.st { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: var(--white); margin: 10px 0 3px; }
+.ss { font-size: 13px; color: var(--ink2); margin-bottom: 14px; }
 
-  /* ── CARDS DE PRODUCTO ── */
-  .products-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 10px;
-    margin-bottom: 24px;
-  }
-  .product-card {
-    background: var(--bg2);
-    border: 1.5px solid var(--line);
-    border-radius: var(--radius);
-    padding: 14px;
-    cursor: pointer;
-    transition: border-color .15s, transform .1s;
-    position: relative;
-    overflow: hidden;
-  }
-  .product-card:hover  { border-color: var(--gold); transform: translateY(-2px); }
-  .product-card:active { transform: scale(.97); }
-  .product-card .emoji { font-size: 36px; line-height: 1; margin-bottom: 8px; display: block; }
-  .product-card .name  { font-size: 14px; font-weight: 700; color: var(--white); line-height: 1.3; margin-bottom: 4px; }
-  .product-card .price-from { font-size: 12px; color: var(--gold); font-weight: 600; }
-  .product-card .unavailable-overlay {
-    position: absolute; inset: 0;
-    background: rgba(15,13,10,.8);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 12px; font-weight: 700; color: var(--ink3);
-    border-radius: var(--radius);
-  }
+.step { display: flex; align-items: center; gap: 8px; margin: 16px 0 10px; }
+.step-n { width: 24px; height: 24px; background: var(--gold); border-radius: 99px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: var(--bg); flex-shrink: 0; }
+.step-n.g { background: var(--green); }
+.step-t { font-size: 14px; font-weight: 700; color: var(--white); }
+.step-h { font-size: 12px; color: var(--gold); font-weight: 600; margin-left: 4px; }
 
-  /* ── BOTTOM SHEET ── */
-  .overlay {
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,.7);
-    z-index: 200;
-    opacity: 0; pointer-events: none;
-    transition: opacity .25s;
-  }
-  .overlay.open { opacity: 1; pointer-events: all; }
-  .sheet {
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
-    background: var(--bg2);
-    border-radius: 24px 24px 0 0;
-    border-top: 1.5px solid var(--line);
-    z-index: 201;
-    max-height: 92dvh;
-    overflow-y: auto;
-    transform: translateY(100%);
-    transition: transform .3s cubic-bezier(.32,.72,0,1);
-    padding-bottom: env(safe-area-inset-bottom, 16px);
-  }
-  .sheet.open { transform: translateY(0); }
-  .sheet-handle {
-    width: 40px; height: 4px;
-    background: var(--line);
-    border-radius: 99px;
-    margin: 12px auto 4px;
-  }
-  .sheet-content { padding: 0 18px 24px; }
-  .sheet-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 22px; font-weight: 700;
-    color: var(--white);
-    margin: 10px 0 4px;
-  }
-  .sheet-sub { font-size: 13px; color: var(--ink2); margin-bottom: 18px; }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip { background: var(--bg3); border: 1.5px solid var(--line); border-radius: var(--rsm); padding: 8px 12px; cursor: pointer; transition: all .15s; display: flex; flex-direction: column; align-items: center; gap: 1px; min-width: 76px; }
+.chip.sel { border-color: var(--gold); background: var(--gold-dim); }
+.chip-p { font-size: 15px; font-weight: 800; color: var(--white); }
+.chip.sel .chip-p { color: var(--gold); }
+.chip-n { font-size: 11px; color: var(--ink3); }
 
-  /* ── STEP LABELS ── */
-  .step-label {
-    display: flex; align-items: center; gap: 10px;
-    margin: 18px 0 10px;
-  }
-  .step-num {
-    width: 24px; height: 24px;
-    background: var(--gold);
-    border-radius: 99px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 12px; font-weight: 800; color: var(--bg);
-    flex-shrink: 0;
-  }
-  .step-text { font-size: 14px; font-weight: 700; color: var(--white); }
-  .step-hint { font-size: 12px; color: var(--gold); font-weight: 600; }
+.half-toggle { background: var(--bg3); border: 1.5px solid var(--line); border-radius: var(--r); padding: 11px 14px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: all .15s; margin-bottom: 2px; }
+.half-toggle.on { border-color: var(--green); background: var(--green-dim); }
+.ht-body { flex: 1; }
+.ht-title { font-size: 14px; font-weight: 700; }
+.ht-sub { font-size: 12px; color: var(--ink3); }
+.half-toggle.on .ht-title { color: var(--green); }
+.half-toggle.on .ht-sub { color: var(--green); }
+.sw { width: 42px; height: 22px; background: var(--line); border-radius: 99px; position: relative; transition: background .2s; flex-shrink: 0; }
+.half-toggle.on .sw { background: var(--green); }
+.sw-t { position: absolute; width: 16px; height: 16px; background: white; border-radius: 99px; top: 3px; left: 3px; transition: left .2s; }
+.half-toggle.on .sw-t { left: 23px; }
 
-  /* ── SIZE CHIPS ── */
-  .chips-row { display: flex; gap: 8px; flex-wrap: wrap; }
-  .chip {
-    background: var(--bg3);
-    border: 1.5px solid var(--line);
-    border-radius: var(--radius-sm);
-    padding: 8px 14px;
-    font-size: 13px; font-weight: 600; color: var(--ink2);
-    cursor: pointer;
-    transition: all .15s;
-    display: flex; flex-direction: column; align-items: center; gap: 2px;
-    min-width: 80px;
-  }
-  .chip.selected  { border-color: var(--gold); background: var(--gold-dim); color: var(--gold); }
-  .chip:hover:not(.selected) { border-color: var(--ink3); color: var(--white); }
-  .chip .chip-price { font-size: 15px; font-weight: 800; }
-  .chip .chip-name  { font-size: 11px; font-weight: 500; opacity: .8; }
+/* EXTRAS — diseño llamativo */
+.ing-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.ing-extra {
+  background: var(--bg3); border: 2px solid var(--line); border-radius: var(--r);
+  padding: 11px 14px; cursor: pointer; transition: all .15s;
+  display: flex; align-items: center; gap: 10px; flex: 1; min-width: 140px;
+}
+.ing-extra:hover:not(.on) { border-color: var(--gold); }
+.ing-extra.on { border-color: var(--gold); background: var(--gold-dim); }
+.ie-icon { font-size: 22px; }
+.ie-name { flex: 1; font-size: 14px; font-weight: 700; color: var(--white); }
+.ie-price { font-size: 12px; font-weight: 800; background: var(--line); color: var(--ink3); padding: 2px 8px; border-radius: 99px; white-space: nowrap; }
+.ing-extra.on .ie-price { background: var(--gold); color: var(--bg); }
+.extras-box { background: var(--gold-dim); border: 1.5px solid var(--gold); border-radius: var(--rsm); padding: 9px 13px; font-size: 13px; font-weight: 700; color: var(--gold); margin-top: 8px; }
 
-  /* ── TOGGLE ½ y ½ ── */
-  .half-toggle {
-    background: var(--bg3);
-    border: 1.5px solid var(--line);
-    border-radius: var(--radius);
-    padding: 12px 14px;
-    display: flex; align-items: center; gap: 12px;
-    cursor: pointer;
-    transition: all .15s;
-    margin-bottom: 4px;
-  }
-  .half-toggle.active { border-color: var(--green); background: var(--green-dim); }
-  .half-toggle-text { flex: 1; }
-  .half-toggle-text .ht-title { font-size: 14px; font-weight: 700; color: var(--white); }
-  .half-toggle-text .ht-sub   { font-size: 12px; color: var(--ink3); }
-  .half-toggle.active .ht-title { color: var(--green); }
-  .half-toggle.active .ht-sub   { color: var(--green); }
-  .toggle-switch {
-    width: 44px; height: 24px;
-    background: var(--line);
-    border-radius: 99px;
-    position: relative;
-    transition: background .2s;
-    flex-shrink: 0;
-  }
-  .half-toggle.active .toggle-switch { background: var(--green); }
-  .toggle-thumb {
-    position: absolute;
-    width: 18px; height: 18px;
-    background: var(--white);
-    border-radius: 99px;
-    top: 3px; left: 3px;
-    transition: left .2s;
-  }
-  .half-toggle.active .toggle-thumb { left: 23px; }
+.halves-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 8px; }
+.half-card { background: var(--bg3); border: 1.5px solid var(--line); border-radius: var(--r); padding: 10px 6px; text-align: center; cursor: pointer; transition: all .15s; }
+.half-card.sel { border-color: var(--green); background: var(--green-dim); }
+.hc-e { font-size: 26px; display: block; margin-bottom: 4px; }
+.hc-n { font-size: 11px; font-weight: 700; color: var(--ink2); line-height: 1.3; }
+.half-card.sel .hc-n { color: var(--green); }
 
-  /* ── INGREDIENTES (quitar / agregar) ── */
-  .ing-grid { display: flex; flex-wrap: wrap; gap: 8px; }
-  .ing-chip {
-    background: var(--bg3);
-    border: 1.5px solid var(--line);
-    border-radius: var(--radius-pill);
-    padding: 6px 12px;
-    font-size: 13px; font-weight: 600; color: var(--ink2);
-    cursor: pointer;
-    display: flex; align-items: center; gap: 5px;
-    transition: all .15s;
-  }
-  .ing-chip.removed { border-color: var(--red); background: var(--red-dim); color: var(--red); }
-  .ing-chip.added   { border-color: var(--gold); background: var(--gold-dim); color: var(--gold); }
-  .ing-chip.added .extra-tag {
-    background: var(--gold);
-    color: var(--bg);
-    font-size: 10px;
-    font-weight: 800;
-    padding: 1px 5px;
-    border-radius: 99px;
-  }
+.qty-row { display: flex; align-items: center; gap: 14px; }
+.qty-btn { width: 38px; height: 38px; background: var(--bg3); border: 1.5px solid var(--line); border-radius: var(--rsm); color: var(--white); font-size: 22px; font-weight: 300; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .1s; }
+.qty-btn:hover { background: var(--gold-dim); border-color: var(--gold); }
+.qty-val { font-size: 22px; font-weight: 800; min-width: 28px; text-align: center; }
 
-  /* ── CANTIDAD ── */
-  .qty-row { display: flex; align-items: center; gap: 14px; }
-  .qty-btn {
-    width: 36px; height: 36px;
-    background: var(--bg3);
-    border: 1.5px solid var(--line);
-    border-radius: var(--radius-sm);
-    color: var(--white);
-    font-size: 20px; font-weight: 300;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    transition: background .1s;
-  }
-  .qty-btn:hover { background: var(--gold-dim); border-color: var(--gold); }
-  .qty-val { font-size: 20px; font-weight: 800; color: var(--white); min-width: 28px; text-align: center; }
+.btn-gold { width: 100%; background: var(--gold); color: var(--bg); border: none; border-radius: var(--r); padding: 14px 18px; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: opacity .15s; margin-top: 18px; }
+.btn-gold:disabled { opacity: .35; cursor: not-allowed; }
+.btn-gold:not(:disabled):hover { opacity: .88; }
+.btn-gold.green { background: var(--green); }
+.btn-total { font-size: 18px; font-weight: 900; }
+.btn-ghost { background: transparent; border: 1.5px solid var(--line); color: var(--ink2); border-radius: var(--r); padding: 12px 18px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: all .15s; margin-top: 10px; width: 100%; }
+.btn-ghost:hover { border-color: var(--ink2); color: var(--white); }
 
-  /* ── SEGUNDA MITAD PICKER ── */
-  .halves-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-    gap: 8px;
-  }
-  .half-card {
-    background: var(--bg3);
-    border: 1.5px solid var(--line);
-    border-radius: var(--radius);
-    padding: 10px 6px;
-    text-align: center;
-    cursor: pointer;
-    transition: all .15s;
-  }
-  .half-card.selected { border-color: var(--green); background: var(--green-dim); }
-  .half-card .hc-emoji { font-size: 28px; display: block; margin-bottom: 4px; }
-  .half-card .hc-name  { font-size: 11px; font-weight: 700; color: var(--ink2); line-height: 1.3; }
-  .half-card.selected .hc-name { color: var(--green); }
+.order-summary { background: var(--bg3); border-radius: var(--r); padding: 14px; margin-bottom: 12px; }
+.os-item { display: flex; justify-content: space-between; align-items: flex-start; padding: 7px 0; border-bottom: 1px solid var(--line); }
+.os-item:last-child { border-bottom: none; }
+.os-name { font-size: 14px; font-weight: 700; color: var(--white); }
+.os-mods { font-size: 12px; color: var(--ink3); margin-top: 2px; line-height: 1.4; }
+.os-price { font-size: 14px; font-weight: 800; color: var(--gold); white-space: nowrap; margin-left: 12px; }
+.os-rm { color: var(--ink3); cursor: pointer; font-size: 16px; margin-left: 6px; }
+.os-rm:hover { color: var(--red); }
+.total-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0 0; }
+.total-label { font-size: 16px; font-weight: 700; }
+.total-val { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 900; color: var(--gold); }
 
-  /* ── BOTÓN PRINCIPAL ── */
-  .btn-primary {
-    width: 100%;
-    background: var(--gold);
-    color: var(--bg);
-    border: none;
-    border-radius: var(--radius);
-    padding: 14px 18px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 15px; font-weight: 800;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: space-between;
-    transition: opacity .15s;
-    margin-top: 18px;
-  }
-  .btn-primary:disabled { opacity: .4; cursor: not-allowed; }
-  .btn-primary:not(:disabled):hover { opacity: .9; }
-  .btn-primary.green { background: var(--green); }
-  .btn-total { font-size: 18px; font-weight: 900; }
+.form-group { margin-bottom: 12px; }
+.form-lbl { font-size: 11px; font-weight: 700; color: var(--ink2); margin-bottom: 5px; display: block; letter-spacing: .5px; text-transform: uppercase; }
+.form-inp { width: 100%; background: var(--bg3); border: 1.5px solid var(--line); border-radius: var(--rsm); padding: 11px 13px; font-family: 'DM Sans', sans-serif; font-size: 15px; color: var(--white); outline: none; transition: border-color .15s; }
+.form-inp:focus { border-color: var(--gold); }
+.form-inp::placeholder { color: var(--ink3); }
+.divider { border: none; border-top: 1px solid var(--line); margin: 12px 0; }
 
-  .btn-secondary {
-    background: var(--bg3);
-    border: 1.5px solid var(--line);
-    color: var(--ink2);
-    border-radius: var(--radius);
-    padding: 12px 18px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px; font-weight: 700;
-    cursor: pointer;
-    transition: background .15s;
-  }
-  .btn-secondary:hover { background: var(--line); color: var(--white); }
+.tracker { display: none; flex-direction: column; align-items: center; padding: 50px 24px; text-align: center; gap: 10px; }
+.tracker.on { display: flex; }
+.tr-emoji  { font-size: 64px; animation: bob .9s ease infinite alternate; }
+.tr-status { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: var(--gold); margin-top: 4px; }
+.tr-sub    { font-size: 14px; color: var(--ink2); max-width: 280px; line-height: 1.5; }
+.tr-steps  { display: flex; gap: 6px; margin-top: 10px; }
+.tr-step   { width: 26px; height: 6px; border-radius: 99px; background: var(--line); transition: background .4s; }
+.tr-step.done   { background: var(--gold); }
+.tr-step.active { background: var(--terra); }
+.tr-id { font-size: 12px; color: var(--ink3); margin-top: 6px; }
+@keyframes bob { from { transform: translateY(0); } to { transform: translateY(-10px); } }
 
-  /* ── CARRITO ── */
-  .cart-item {
-    background: var(--bg3);
-    border: 1.5px solid var(--line);
-    border-radius: var(--radius);
-    padding: 12px;
-    margin-bottom: 8px;
-    display: flex; align-items: flex-start; gap: 10px;
-  }
-  .ci-info { flex: 1; }
-  .ci-name { font-size: 14px; font-weight: 700; color: var(--white); }
-  .ci-mods { font-size: 12px; color: var(--ink3); margin-top: 2px; line-height: 1.4; }
-  .ci-price { font-size: 15px; font-weight: 800; color: var(--gold); }
-  .ci-remove { color: var(--ink3); cursor: pointer; font-size: 18px; line-height: 1; padding: 2px; }
-  .ci-remove:hover { color: var(--red); }
-
-  /* ── FORMULARIO ── */
-  .form-group { margin-bottom: 14px; }
-  .form-label { font-size: 12px; font-weight: 700; color: var(--ink2); margin-bottom: 6px; display: block; letter-spacing: .5px; text-transform: uppercase; }
-  .form-input {
-    width: 100%;
-    background: var(--bg3);
-    border: 1.5px solid var(--line);
-    border-radius: var(--radius-sm);
-    padding: 11px 14px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 15px;
-    color: var(--white);
-    outline: none;
-    transition: border-color .15s;
-  }
-  .form-input:focus { border-color: var(--gold); }
-  .form-input::placeholder { color: var(--ink3); }
-
-  /* ── TRACKER DE ESTADO ── */
-  .tracker {
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    padding: 40px 20px;
-    text-align: center;
-    gap: 12px;
-  }
-  .tracker.visible { display: flex; }
-  .tracker-emoji  { font-size: 64px; animation: bounce .8s ease infinite alternate; }
-  .tracker-status { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: var(--gold); }
-  .tracker-sub    { font-size: 14px; color: var(--ink2); max-width: 280px; }
-  .tracker-steps  { display: flex; gap: 6px; margin-top: 8px; }
-  .tracker-step {
-    width: 28px; height: 6px;
-    border-radius: 99px;
-    background: var(--line);
-    transition: background .4s;
-  }
-  .tracker-step.done { background: var(--gold); }
-  .tracker-step.active { background: var(--terra); }
-
-  @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-8px); } }
-
-  /* ── SPINNER ── */
-  .spinner {
-    width: 40px; height: 40px;
-    border: 3px solid var(--line);
-    border-top-color: var(--gold);
-    border-radius: 50%;
-    animation: spin .8s linear infinite;
-    margin: 60px auto;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  /* ── EXTRAS RESUMEN ── */
-  .extras-summary {
-    background: var(--gold-dim);
-    border: 1.5px solid var(--gold);
-    border-radius: var(--radius-sm);
-    padding: 8px 12px;
-    font-size: 13px; font-weight: 700; color: var(--gold);
-    margin-top: 8px;
-  }
-
-  /* ── TOAST ── */
-  .toast {
-    position: fixed;
-    bottom: 90px; left: 50%;
-    transform: translateX(-50%) translateY(20px);
-    background: var(--bg3);
-    border: 1.5px solid var(--gold);
-    color: var(--white);
-    padding: 10px 18px;
-    border-radius: var(--radius-pill);
-    font-size: 14px; font-weight: 600;
-    opacity: 0;
-    transition: all .3s;
-    pointer-events: none;
-    white-space: nowrap;
-    z-index: 300;
-  }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-  /* ── VACÍO ── */
-  .empty-state {
-    text-align: center;
-    padding: 60px 20px;
-    color: var(--ink3);
-  }
-  .empty-state .es-emoji { font-size: 48px; margin-bottom: 12px; display: block; }
-  .empty-state .es-title { font-size: 16px; font-weight: 700; color: var(--ink2); margin-bottom: 4px; }
-
-  /* ── SEPARADORES ── */
-  .divider { border: none; border-top: 1px solid var(--line); margin: 14px 0; }
-  .order-total-row {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 10px 0;
-  }
-  .order-total-label { font-size: 16px; font-weight: 700; color: var(--white); }
-  .order-total-value { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 900; color: var(--gold); }
-
-  /* responsive */
-  @media (max-width: 400px) {
-    .products-grid { grid-template-columns: repeat(2, 1fr); }
-  }
+.spinner { width: 38px; height: 38px; border: 3px solid var(--line); border-top-color: var(--gold); border-radius: 50%; animation: spin .8s linear infinite; margin: 60px auto; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.empty { text-align: center; padding: 50px 20px; }
+.empty span { font-size: 44px; display: block; margin-bottom: 10px; }
+.empty p { font-size: 15px; color: var(--ink2); font-weight: 600; }
+.empty small { font-size: 13px; color: var(--ink3); }
+.toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(12px); background: var(--bg3); border: 1.5px solid var(--gold); color: var(--white); padding: 9px 18px; border-radius: var(--rpill); font-size: 14px; font-weight: 600; opacity: 0; transition: all .3s; pointer-events: none; white-space: nowrap; z-index: 200; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
 
-<!-- HEADER -->
 <header class="header">
   <div>
-    <div class="header-logo">🍕 Corteza Oculta</div>
-    <div class="header-sub">Ordena en línea</div>
+    <div class="logo">🍕 Corteza Oculta</div>
+    <div class="logo-sub">Ordena en línea</div>
   </div>
-  <button class="cart-btn" onclick="openCart()" id="cartBtn" style="display:none">
-    🛒 Mi orden <span class="cart-badge" id="cartBadge">0</span>
-  </button>
 </header>
 
-<!-- CONTENIDO PRINCIPAL -->
 <div id="menuView">
-  <div class="spinner" id="menuSpinner"></div>
+  <div class="spinner" id="spinner"></div>
   <div id="menuContent" style="display:none"></div>
+  <div class="menu-spacer"></div>
 </div>
 
-<!-- TRACKER DE ESTADO (post-pedido) -->
 <div class="tracker" id="tracker">
-  <div class="tracker-emoji" id="trackerEmoji">🔔</div>
-  <div class="tracker-status" id="trackerStatus">Pedido enviado</div>
-  <div class="tracker-sub" id="trackerSub">Espera la confirmación de la pizzería</div>
-  <div class="tracker-steps" id="trackerSteps"></div>
-  <div style="margin-top:20px; font-size:13px; color:var(--ink3)" id="trackerOrderId"></div>
+  <div class="tr-emoji" id="trEmoji">🔔</div>
+  <div class="tr-status" id="trStatus">Pedido enviado</div>
+  <div class="tr-sub" id="trSub">Espera la confirmación</div>
+  <div class="tr-steps" id="trSteps"></div>
+  <div class="tr-id" id="trId"></div>
 </div>
 
-<!-- TOAST -->
-<div class="toast" id="toast"></div>
+<div class="bottom-bar" id="bottomBar">
+  <div class="bbi">
+    <div class="bb-left">
+      <div class="bb-count" id="bbCount">0 artículos</div>
+      <div class="bb-total" id="bbTotal">$0</div>
+    </div>
+    <button class="bb-btn" onclick="openCheckout()">Continuar →</button>
+  </div>
+</div>
 
-<!-- OVERLAY -->
+<div class="toast" id="toast"></div>
 <div class="overlay" id="overlay" onclick="closeSheet()"></div>
 
-<!-- SHEET: PICKER DE PRODUCTO -->
 <div class="sheet" id="productSheet">
-  <div class="sheet-handle"></div>
-  <div class="sheet-content" id="productSheetContent"></div>
+  <div class="handle"></div>
+  <div class="sc" id="productSheetContent"></div>
 </div>
 
-<!-- SHEET: CARRITO -->
-<div class="sheet" id="cartSheet">
-  <div class="sheet-handle"></div>
-  <div class="sheet-content" id="cartSheetContent"></div>
+<div class="sheet" id="checkoutSheet">
+  <div class="handle"></div>
+  <div class="sc" id="checkoutContent"></div>
 </div>
 
-<!-- Firebase -->
 <script type="module">
-import { initializeApp }                       from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getFirestore, doc, collection,
-         getDoc, onSnapshot, addDoc,
-         serverTimestamp }                     from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { initializeApp }     from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, doc, collection, getDoc, onSnapshot, addDoc, serverTimestamp }
+                             from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
-// ── CONFIG ────────────────────────────────────────────────────────
-const firebaseConfig = {
+const db = getFirestore(initializeApp({
   apiKey:            "AIzaSyDKGTeRqhcmAUuSg7dAGZ9bmLIlNpolCo4",
   authDomain:        "cortezaoculta-c87348f6.firebaseapp.com",
   projectId:         "cortezaoculta-c87348f6",
   storageBucket:     "cortezaoculta-c87348f6.firebasestorage.app",
   messagingSenderId: "252563057583",
   appId:             "1:252563057583:android:928f3b1fddb462ef6bdd5a",
-};
+}));
 
-const app = initializeApp(firebaseConfig);
-const db  = getFirestore(app);
+const EXTRA = 15;
+let menu = { recipes:[], sizes:[], categories:[], ingredients:[] };
+let cart = [];
+let activeSheet = null;
+let p = {};
 
-// ── ESTADO ────────────────────────────────────────────────────────
-let menuData   = { recipes: [], sizes: [], categories: [], ingredients: [] };
-let cart       = [];
-let activeOrder = null;   // { orderId } después de confirmar
-let sheet      = null;    // qué sheet está abierto
-
-// Estado del picker actual
-let picker = {
-  recipe:         null,
-  selectedSize:   null,
-  qty:            1,
-  removed:        new Set(),
-  added:          new Set(),   // nombres de extras
-  halfMode:       false,
-  halfRecipe:     null,
-  halfRemoved:    new Set(),
-  halfAdded:      new Set(),
-  step:           'main',   // 'main' | 'half'
-};
-
-const EXTRA_PRICE = 15;
+function resetPicker(recipe) {
+  p = { recipe, size: menu.sizes[1]||menu.sizes[0], qty:1,
+        removed:new Set(), added:new Set(),
+        halfMode:false, halfRecipe:null, halfAdded:new Set() };
+}
 
 // ── CARGAR MENÚ ───────────────────────────────────────────────────
 async function loadMenu() {
   try {
-    const [recipesSnap, sizesSnap, catsSnap, ingsSnap] = await Promise.all([
-      getDoc(doc(db, 'menu', 'recipes')),
-      getDoc(doc(db, 'menu', 'sizes')),
-      getDoc(doc(db, 'menu', 'categories')),
-      getDoc(doc(db, 'menu', 'ingredients')),
+    const [rS,sS,cS,iS] = await Promise.all([
+      getDoc(doc(db,'menu','recipes')),
+      getDoc(doc(db,'menu','sizes')),
+      getDoc(doc(db,'menu','categories')),
+      getDoc(doc(db,'menu','ingredients')),
     ]);
-
-    if (!recipesSnap.exists()) {
-      document.getElementById('menuSpinner').style.display = 'none';
-      document.getElementById('menuContent').innerHTML = `
-        <div class="empty-state">
-          <span class="es-emoji">😴</span>
-          <div class="es-title">Menú no disponible</div>
-          <div>La pizzería aún no ha publicado su menú</div>
-        </div>`;
-      document.getElementById('menuContent').style.display = 'block';
+    if (!rS.exists()) {
+      document.getElementById('spinner').style.display='none';
+      document.getElementById('menuContent').innerHTML=
+        '<div class="empty"><span>😴</span><p>Menú no disponible</p><small>La pizzería aún no ha publicado su menú</small></div>';
+      document.getElementById('menuContent').style.display='block';
       return;
     }
-
-    menuData.recipes     = recipesSnap.data().items || [];
-    menuData.sizes       = sizesSnap.exists()  ? sizesSnap.data().items  : [];
-    menuData.categories  = catsSnap.exists()   ? catsSnap.data().items   : [];
-    menuData.ingredients = ingsSnap.exists()   ? ingsSnap.data().items   : [];
-
+    menu.recipes     = rS.data().items||[];
+    menu.sizes       = sS.exists()?sS.data().items:[];
+    menu.categories  = cS.exists()?cS.data().items:[];
+    menu.ingredients = iS.exists()?iS.data().items:[];
     renderMenu();
-  } catch (e) {
-    console.error(e);
-    document.getElementById('menuSpinner').innerHTML =
-      '<div class="empty-state"><span class="es-emoji">⚠️</span><div class="es-title">Error al cargar el menú</div></div>';
+  } catch(e) {
+    document.getElementById('spinner').innerHTML='<div class="empty"><span>⚠️</span><p>Error al cargar</p></div>';
   }
 }
 
-// ── RENDER MENÚ ───────────────────────────────────────────────────
 function renderMenu() {
-  document.getElementById('menuSpinner').style.display = 'none';
-
-  // Agrupar por categoría
-  const groups = {};
-  for (const recipe of menuData.recipes) {
-    if (!groups[recipe.category]) groups[recipe.category] = [];
-    groups[recipe.category].push(recipe);
-  }
-
-  const catMeta = {};
-  for (const c of menuData.categories) catMeta[c.name] = c;
-
-  let html = '';
-  for (const [catName, recipes] of Object.entries(groups)) {
-    const meta  = catMeta[catName] || { emoji: '🍽️', label: catName };
-    html += `<div class="section">
-      <div class="section-title">${meta.emoji} ${meta.label}</div>
-      <div class="products-grid">`;
-
-    for (const recipe of recipes) {
-      const minPrice  = minPriceFor(recipe);
-      const emoji     = recipe.emoji || meta.emoji;
-      const available = recipe.available !== false;
-
-      html += `<div class="product-card" onclick="${available ? `openProductPicker('${recipe.id}')` : ''}">
-        <span class="emoji">${emoji}</span>
-        <div class="name">${recipe.name}</div>
-        <div class="price-from">Desde $${minPrice}</div>
-        ${!available ? '<div class="unavailable-overlay">🚫 Agotado</div>' : ''}
-      </div>`;
+  document.getElementById('spinner').style.display='none';
+  const catM = Object.fromEntries(menu.categories.map(c=>[c.name,c]));
+  const grps = {};
+  for (const r of menu.recipes) { (grps[r.category]||(grps[r.category]=[])).push(r); }
+  let html='';
+  for (const [cat,rs] of Object.entries(grps)) {
+    const m = catM[cat]||{emoji:'🍽️',label:cat};
+    html+=`<div class="section"><div class="section-title">${m.emoji} ${m.label}</div><div class="products-grid">`;
+    for (const r of rs) {
+      const avail=r.available!==false, min=minP(r), e=r.emoji||m.emoji;
+      html+=`<div class="product-card" onclick="${avail?`openPicker('${r.id}')`:''}">`+
+        `<span class="pc-emoji">${e}</span>`+
+        `<div class="pc-name">${r.name}</div>`+
+        `<div class="pc-price">Desde $${min}</div>`+
+        `${!avail?'<div class="unavail-overlay">🚫 Agotado</div>':''}</div>`;
     }
-    html += '</div></div>';
+    html+='</div></div>';
   }
-
-  document.getElementById('menuContent').innerHTML = html;
-  document.getElementById('menuContent').style.display = 'block';
+  document.getElementById('menuContent').innerHTML=html;
+  document.getElementById('menuContent').style.display='block';
 }
 
-function minPriceFor(recipe) {
-  const prices = recipe.prices || {};
-  const vals   = Object.values(prices).filter(v => v > 0);
-  return vals.length > 0 ? Math.min(...vals) : 0;
-}
+const minP = r => { const v=Object.values(r.prices||{}).filter(x=>x>0); return v.length?Math.min(...v):0; };
+const pfS  = (r,sid) => r?.prices?.[sid]||0;
 
-function priceForSize(recipe, sizeId) {
-  return recipe.prices?.[sizeId] || 0;
-}
-
-// ── ABRIR PICKER DE PRODUCTO ──────────────────────────────────────
-window.openProductPicker = function(recipeId) {
-  const recipe = menuData.recipes.find(r => r.id === recipeId);
-  if (!recipe) return;
-
-  picker = {
-    recipe,
-    selectedSize:  menuData.sizes[1] || menuData.sizes[0],
-    qty:           1,
-    removed:       new Set(),
-    added:         new Set(),
-    halfMode:      false,
-    halfRecipe:    null,
-    halfRemoved:   new Set(),
-    halfAdded:     new Set(),
-    step:          'main',
-  };
-
-  renderProductSheet();
-  openSheet('productSheet');
+// ── PICKER ────────────────────────────────────────────────────────
+window.openPicker = id => {
+  const r=menu.recipes.find(r=>r.id===id); if(!r)return;
+  resetPicker(r); renderPicker(); openSheet('productSheet');
 };
 
-function renderProductSheet() {
-  const { recipe, selectedSize, qty, removed, added, halfMode } = picker;
-  const canHalf   = recipe.category === 'PIZZA';
-  const basePrice = selectedSize ? priceForSize(recipe, selectedSize.id) : 0;
-  const extraTotal = added.size * EXTRA_PRICE;
-  const total     = (basePrice + extraTotal) * qty;
+function renderPicker() {
+  const {recipe:r, size, qty, removed, added, halfMode, halfRecipe, halfAdded} = p;
+  const canHalf = r.category==='PIZZA';
+  const recipeIngIds = new Set((r.ingredients||[]).map(i=>i.ingredientId));
+  const extras = menu.ingredients.filter(i=>!recipeIngIds.has(i.id)).slice(0,14);
+  let n=1, html='';
 
-  // Ingredientes de esta receta
-  const recipeIngIds = new Set((recipe.ingredients || []).map(i => i.ingredientId));
-  // Extras disponibles: ingredientes de otras recetas que no están en esta
-  const extraPool = getExtraPool(recipeIngIds);
+  html+=`<div class="st">${r.emoji||'🍕'} ${r.name}</div><div class="ss">${r.category}</div>`;
 
-  let html = `
-    <div class="sheet-title">${recipe.emoji || '🍕'} ${recipe.name}</div>
-    <div class="sheet-sub">${recipe.category}</div>`;
-
-  // Toggle ½ y ½ solo pizzas
   if (canHalf) {
-    html += `<div class="half-toggle ${halfMode ? 'active' : ''}" onclick="toggleHalfMode()">
-      <span style="font-size:22px">🍕</span>
-      <div class="half-toggle-text">
-        <div class="ht-title">Pizza ½ y ½</div>
-        <div class="ht-sub">${halfMode ? 'Activo · elige la 2ª mitad abajo' : 'Dividir en dos sabores diferentes'}</div>
-      </div>
-      <div class="toggle-switch"><div class="toggle-thumb"></div></div>
-    </div>`;
+    html+=`<div class="half-toggle ${halfMode?'on':''}" onclick="toggleHalf()">
+      <span style="font-size:20px">🍕</span>
+      <div class="ht-body"><div class="ht-title">Pizza ½ y ½</div>
+      <div class="ht-sub">${halfMode?'Activo — elige la 2ª mitad abajo':'Dividir en dos sabores'}</div></div>
+      <div class="sw"><div class="sw-t"></div></div></div>`;
   }
 
-  // Tamaños
-  html += `<div class="step-label"><div class="step-num">1</div><div class="step-text">Elige el tamaño</div></div>
-    <div class="chips-row">`;
-  for (const size of menuData.sizes) {
-    const price = priceForSize(recipe, size.id);
-    if (price <= 0) continue;
-    const sel = selectedSize?.id === size.id;
-    html += `<div class="chip ${sel ? 'selected' : ''}" onclick="selectSize('${size.id}')">
-      <span class="chip-price">$${price}</span>
-      <span class="chip-name">${size.name}</span>
-    </div>`;
+  // Tamaño
+  html+=sl(n++,'Elige el tamaño')+'<div class="chips">';
+  for (const s of menu.sizes) {
+    const pr=pfS(r,s.id); if(!pr)continue;
+    html+=`<div class="chip ${size?.id===s.id?'sel':''}" onclick="selSize('${s.id}')"><span class="chip-p">$${pr}</span><span class="chip-n">${s.name}</span></div>`;
   }
-  html += '</div>';
+  html+='</div>';
 
-  // Extras
-  if (extraPool.length > 0) {
-    html += `<div class="step-label">
-      <div class="step-num">2</div>
-      <div class="step-text">¿Algo extra?</div>
-      <div class="step-hint">• $${EXTRA_PRICE} c/u</div>
-    </div><div class="ing-grid">`;
-    for (const name of extraPool) {
-      const isAdded = added.has(name);
-      html += `<div class="ing-chip ${isAdded ? 'added' : ''}" onclick="toggleExtra('${name}')">
-        ${isAdded ? '✓' : '+'} ${name}
-        ${isAdded ? `<span class="extra-tag">+$${EXTRA_PRICE}</span>` : ''}
-      </div>`;
+  // Extras — diseño llamativo
+  if (extras.length>0) {
+    html+=sl(n++,'¿Algo extra?',`$${EXTRA} por ingrediente adicional`)+'<div class="ing-grid">';
+    for (const ing of extras) {
+      const on=added.has(ing.name);
+      html+=`<div class="ing-extra ${on?'on':''}" onclick="toggleExtra('${esc(ing.name)}')">
+        <span class="ie-icon">${iEmoji(ing.type)}</span>
+        <span class="ie-name">${ing.name}</span>
+        <span class="ie-price">${on?`+$${EXTRA}`:`$${EXTRA}`}</span></div>`;
     }
-    html += '</div>';
-    if (added.size > 0) {
-      html += `<div class="extras-summary">Extras: ${added.size} × $${EXTRA_PRICE} = +$${added.size * EXTRA_PRICE}</div>`;
-    }
+    html+='</div>';
+    if (added.size>0) html+=`<div class="extras-box">➕ ${added.size} extra${added.size>1?'s':''} · +$${added.size*EXTRA} al precio base</div>`;
   }
 
-  // Segunda mitad (si halfMode activo)
-  if (halfMode) {
-    const otherPizzas = menuData.recipes.filter(r =>
-      r.id !== recipe.id && r.category === 'PIZZA' && r.available !== false);
-
-    html += `<div class="step-label">
-      <div class="step-num">${extraPool.length > 0 ? 3 : 2}</div>
-      <div class="step-text">Elige la 2ª mitad</div>
-    </div>
-    <div class="halves-grid">`;
-    for (const r of otherPizzas) {
-      const sel = picker.halfRecipe?.id === r.id;
-      html += `<div class="half-card ${sel ? 'selected' : ''}" onclick="selectHalf('${r.id}')">
-        <span class="hc-emoji">${r.emoji || '🍕'}</span>
-        <div class="hc-name">${r.name}</div>
-      </div>`;
+  // Segunda mitad
+  if (canHalf&&halfMode) {
+    const others=menu.recipes.filter(r2=>r2.id!==r.id&&r2.category==='PIZZA'&&r2.available!==false);
+    html+=sl(n++,'Elige la 2ª mitad','','g')+'<div class="halves-grid">';
+    for (const r2 of others) {
+      html+=`<div class="half-card ${halfRecipe?.id===r2.id?'sel':''}" onclick="selHalf('${r2.id}')">
+        <span class="hc-e">${r2.emoji||'🍕'}</span><div class="hc-n">${r2.name}</div></div>`;
     }
-    html += '</div>';
+    html+='</div>';
 
-    // Extras para 2ª mitad
-    if (picker.halfRecipe) {
-      const halfIngIds = new Set((picker.halfRecipe.ingredients || []).map(i => i.ingredientId));
-      const halfExtras = getExtraPool(halfIngIds);
-      if (halfExtras.length > 0) {
-        html += `<div class="step-label">
-          <div class="step-num" style="background:var(--green)">+</div>
-          <div class="step-text">¿Extra en ${picker.halfRecipe.name}?</div>
-          <div class="step-hint">• $${EXTRA_PRICE} c/u</div>
-        </div><div class="ing-grid">`;
-        for (const name of halfExtras) {
-          const isAdded = picker.halfAdded.has(name);
-          html += `<div class="ing-chip ${isAdded ? 'added' : ''}" onclick="toggleHalfExtra('${name}')">
-            ${isAdded ? '✓' : '+'} ${name}
-            ${isAdded ? `<span class="extra-tag">+$${EXTRA_PRICE}</span>` : ''}
-          </div>`;
+    if (halfRecipe) {
+      const h2ids=new Set((halfRecipe.ingredients||[]).map(i=>i.ingredientId));
+      const h2ext=menu.ingredients.filter(i=>!h2ids.has(i.id)).slice(0,14);
+      if (h2ext.length>0) {
+        html+=sl(n++,`Extra en ${halfRecipe.name}`,`$${EXTRA} c/u`,'g')+'<div class="ing-grid">';
+        for (const ing of h2ext) {
+          const on=halfAdded.has(ing.name);
+          html+=`<div class="ing-extra ${on?'on':''}" onclick="toggleHalfExtra('${esc(ing.name)}')">
+            <span class="ie-icon">${iEmoji(ing.type)}</span>
+            <span class="ie-name">${ing.name}</span>
+            <span class="ie-price">${on?`+$${EXTRA}`:`$${EXTRA}`}</span></div>`;
         }
-        html += '</div>';
+        html+='</div>';
       }
     }
   }
 
   // Cantidad
-  const qtyStep = (() => {
-    let n = 2;
-    if (extraPool.length > 0) n++;
-    if (halfMode) n++;
-    return n;
-  })();
-  html += `<div class="step-label"><div class="step-num">${qtyStep}</div><div class="step-text">Cantidad</div></div>
-    <div class="qty-row">
-      <button class="qty-btn" onclick="changeQty(-1)">−</button>
-      <span class="qty-val" id="qtyVal">${qty}</span>
-      <button class="qty-btn" onclick="changeQty(1)">+</button>
-    </div>`;
+  html+=sl(n++,'Cantidad')+`<div class="qty-row">
+    <button class="qty-btn" onclick="chQty(-1)">−</button>
+    <span class="qty-val">${qty}</span>
+    <button class="qty-btn" onclick="chQty(1)">+</button></div>`;
 
-  // Calcular total real
-  const unitPrice = calcUnitPrice();
-  const finalTotal = unitPrice * qty;
+  const unit=calcUnit(), ready=size&&(!halfMode||halfRecipe);
+  html+=`<button class="btn-gold ${halfMode?'green':''}" onclick="addToCart()" ${!ready?'disabled':''}>
+    <span>${halfMode?'✅ Agregar ½ y ½':'✅ Agregar al pedido'}</span>
+    <span class="btn-total">$${unit*qty}</span></button>`;
 
-  // Botón agregar
-  const halfReady = !halfMode || picker.halfRecipe !== null;
-  html += `<button class="btn-primary ${halfMode ? 'green' : ''}"
-    onclick="addToCart()" ${!selectedSize || !halfReady ? 'disabled' : ''}>
-    <span>✅ Agregar al pedido</span>
-    <span class="btn-total">$${finalTotal}</span>
-  </button>`;
-
-  document.getElementById('productSheetContent').innerHTML = html;
+  document.getElementById('productSheetContent').innerHTML=html;
 }
 
-function calcUnitPrice() {
-  const { recipe, selectedSize, added, halfRecipe, halfAdded, halfMode } = picker;
-  if (!selectedSize) return 0;
-  const firstPrice  = priceForSize(recipe, selectedSize.id);
-  const secondPrice = (halfMode && halfRecipe) ? priceForSize(halfRecipe, selectedSize.id) : 0;
-  const base        = halfMode ? Math.max(firstPrice, secondPrice) : firstPrice;
-  const totalExtras = (added.size + (halfMode ? halfAdded.size : 0)) * EXTRA_PRICE;
-  return base + totalExtras;
-}
+const sl = (n,t,h='',g='') =>
+  `<div class="step"><div class="step-n ${g}">${n}</div><div class="step-t">${t}</div>${h?`<div class="step-h">· ${h}</div>`:''}</div>`;
 
-// Construye la lista de nombres de ingredientes disponibles como extras
-// Usa el catálogo de ingredientes subido por la app (nombres reales)
-function getExtraPool(recipeIngIds) {
-  // ingIdToName: mapa de id → nombre del catálogo
-  const ingIdToName = {};
-  for (const ing of menuData.ingredients) ingIdToName[ing.id] = ing.name;
-
-  return menuData.ingredients
-    .filter(ing => !recipeIngIds.has(ing.id))
-    .map(ing => ing.name)
-    .slice(0, 16);
-}
-
-// ── HANDLERS ─────────────────────────────────────────────────────
-window.toggleHalfMode = () => { picker.halfMode = !picker.halfMode; picker.halfRecipe = null; renderProductSheet(); };
-window.selectSize     = (id) => { picker.selectedSize = menuData.sizes.find(s => s.id === id); renderProductSheet(); };
-window.selectHalf     = (id) => { picker.halfRecipe = menuData.recipes.find(r => r.id === id); picker.halfAdded = new Set(); renderProductSheet(); };
-window.changeQty      = (d) => { picker.qty = Math.max(1, Math.min(20, picker.qty + d)); renderProductSheet(); };
-
-window.toggleExtra = (name) => {
-  if (picker.added.has(name)) picker.added.delete(name); else picker.added.add(name);
-  renderProductSheet();
-};
-window.toggleHalfExtra = (name) => {
-  if (picker.halfAdded.has(name)) picker.halfAdded.delete(name); else picker.halfAdded.add(name);
-  renderProductSheet();
+const iEmoji = type => {
+  if(!type)return'🧀';
+  if(type.includes('CARNICOS'))return'🥩';
+  if(type.includes('FRUTAS'))return'🌿';
+  if(type.includes('LACTEOS'))return'🧀';
+  return'➕';
 };
 
-// ── AGREGAR AL CARRITO ────────────────────────────────────────────
+function calcUnit() {
+  if(!p.size)return 0;
+  const b1=pfS(p.recipe,p.size.id);
+  const b2=p.halfMode&&p.halfRecipe?pfS(p.halfRecipe,p.size.id):0;
+  return(p.halfMode?Math.max(b1,b2):b1)+(p.added.size+(p.halfMode?p.halfAdded.size:0))*EXTRA;
+}
+
+window.toggleHalf      = ()=>{ p.halfMode=!p.halfMode; p.halfRecipe=null; p.halfAdded=new Set(); renderPicker(); };
+window.selSize         = id=>{ p.size=menu.sizes.find(s=>s.id===id); renderPicker(); };
+window.selHalf         = id=>{ p.halfRecipe=menu.recipes.find(r=>r.id===id); p.halfAdded=new Set(); renderPicker(); };
+window.chQty           = d =>{ p.qty=Math.max(1,Math.min(20,p.qty+d)); renderPicker(); };
+window.toggleExtra     = n =>{ p.added.has(n)?p.added.delete(n):p.added.add(n); renderPicker(); };
+window.toggleHalfExtra = n =>{ p.halfAdded.has(n)?p.halfAdded.delete(n):p.halfAdded.add(n); renderPicker(); };
+
 window.addToCart = () => {
-  const { recipe, selectedSize, qty, removed, added, halfMode, halfRecipe, halfRemoved, halfAdded } = picker;
-  if (!selectedSize) return;
-
-  const unitPrice = calcUnitPrice();
-
-  const displayName = halfMode && halfRecipe
-    ? `½ ${recipe.name} + ½ ${halfRecipe.name} — ${selectedSize.name}`
-    : `${recipe.name} — ${selectedSize.name}`;
-
-  const modsLabel = buildModsLabel(removed, added, halfMode, halfRecipe, halfRemoved, halfAdded);
-
+  if(!p.size)return;
+  const unit=calcUnit();
+  const dn=p.halfMode&&p.halfRecipe?`½ ${p.recipe.name} + ½ ${p.halfRecipe.name} — ${p.size.name}`:`${p.recipe.name} — ${p.size.name}`;
+  const mods=[];
+  if(p.removed.size)    mods.push('Sin '+[...p.removed].join(', '));
+  if(p.added.size)      mods.push('+'   +[...p.added].join(', +'));
+  if(p.halfMode&&p.halfAdded.size) mods.push(`½${p.halfRecipe?.name}: +`+[...p.halfAdded].join(', +'));
   cart.push({
-    recipeName:             recipe.name,
-    halfRecipeName:         halfMode && halfRecipe ? halfRecipe.name : null,
-    recipeId:               recipe.id,
-    halfRecipeId:           halfMode && halfRecipe ? halfRecipe.id : null,
-    sizeId:                 selectedSize.id,
-    sizeName:               selectedSize.name,
-    qty,
-    unitPrice,
-    removedIngredients:     [...removed],
-    addedIngredients:       [...added],
-    halfRemovedIngredients: halfMode ? [...halfRemoved] : [],
-    halfAddedIngredients:   halfMode ? [...halfAdded]   : [],
-    displayName,
-    modsLabel,
+    recipeName:p.recipe.name, halfRecipeName:p.halfMode&&p.halfRecipe?p.halfRecipe.name:null,
+    sizeId:p.size.id, sizeName:p.size.name, qty:p.qty, unitPrice:unit,
+    removedIngredients:[...p.removed], addedIngredients:[...p.added],
+    halfRemovedIngredients:[], halfAddedIngredients:p.halfMode?[...p.halfAdded]:[],
+    displayName:dn, modsLabel:mods.join(' · '),
   });
-
-  updateCartBadge();
-  closeSheet();
-  showToast(`✅ ${recipe.name} agregada`);
+  updateBar(); closeSheet(); showToast(`✅ ${p.recipe.name} agregada`);
 };
 
-function buildModsLabel(removed, added, halfMode, halfRecipe, halfRemoved, halfAdded) {
-  const parts = [];
-  if (removed.size > 0)    parts.push('Sin ' + [...removed].join(', sin '));
-  if (added.size > 0)      parts.push('+ ' + [...added].join(', +'));
-  if (halfMode && halfRecipe) {
-    if (halfRemoved.size > 0) parts.push(`½${halfRecipe.name}: Sin ` + [...halfRemoved].join(', sin '));
-    if (halfAdded.size > 0)   parts.push(`½${halfRecipe.name}: + ` + [...halfAdded].join(', +'));
+function updateBar() {
+  const total=cart.reduce((s,i)=>s+i.unitPrice*i.qty,0);
+  const items=cart.reduce((s,i)=>s+i.qty,0);
+  document.getElementById('bbCount').textContent=`${items} artículo${items!==1?'s':''}`;
+  document.getElementById('bbTotal').textContent=`$${total}`;
+  document.getElementById('bottomBar').classList.toggle('visible',cart.length>0);
+}
+
+window.openCheckout = ()=>{ renderCheckout(); openSheet('checkoutSheet'); };
+window.removeItem   = idx=>{ cart.splice(idx,1); updateBar(); cart.length===0?closeSheet():renderCheckout(); };
+
+function renderCheckout() {
+  const total=cart.reduce((s,i)=>s+i.unitPrice*i.qty,0);
+  let html=`<div class="st">🛒 Tu orden</div><div class="order-summary">`;
+  for (let i=0;i<cart.length;i++) {
+    const it=cart[i];
+    html+=`<div class="os-item">
+      <div style="flex:1"><div class="os-name">${it.qty}× ${it.displayName}</div>
+      ${it.modsLabel?`<div class="os-mods">${it.modsLabel}</div>`:''}</div>
+      <div style="display:flex;align-items:center">
+        <span class="os-price">$${it.unitPrice*it.qty}</span>
+        <span class="os-rm" onclick="removeItem(${i})">✕</span>
+      </div></div>`;
   }
-  return parts.join(' · ');
+  html+=`</div><div class="total-row"><span class="total-label">Total</span><span class="total-val">$${total}</span></div>
+    <div class="divider"></div>
+    <div class="st" style="font-size:18px;margin-top:4px">Tus datos</div>
+    <div class="form-group" style="margin-top:12px">
+      <label class="form-lbl">Nombre</label>
+      <input class="form-inp" id="fName" placeholder="¿Cómo te llamas?" autocomplete="name">
+    </div>
+    <div class="form-group">
+      <label class="form-lbl">Teléfono</label>
+      <input class="form-inp" id="fPhone" type="tel" placeholder="10 dígitos" autocomplete="tel">
+    </div>
+    <div class="form-group">
+      <label class="form-lbl">Dirección</label>
+      <input class="form-inp" id="fAddr" placeholder="Calle, número, colonia" autocomplete="street-address">
+    </div>
+    <div class="form-group">
+      <label class="form-lbl">2ª dirección <span style="color:var(--ink3);font-weight:400;text-transform:none">(opcional)</span></label>
+      <input class="form-inp" id="fAddr2" placeholder="Entre calles, referencias…">
+    </div>
+    <div class="form-group">
+      <label class="form-lbl">Notas <span style="color:var(--ink3);font-weight:400;text-transform:none">(opcional)</span></label>
+      <input class="form-inp" id="fNotes" placeholder="Indicaciones especiales…">
+    </div>
+    <button class="btn-gold" onclick="submitOrder()">
+      <span>📤 Enviar pedido</span><span class="btn-total">$${total}</span>
+    </button>
+    <button class="btn-ghost" onclick="closeSheet()">← Seguir agregando</button>`;
+  document.getElementById('checkoutContent').innerHTML=html;
 }
 
-// ── CARRITO ───────────────────────────────────────────────────────
-function updateCartBadge() {
-  const total = cart.reduce((s, i) => s + i.qty, 0);
-  document.getElementById('cartBadge').textContent = total;
-  document.getElementById('cartBtn').style.display = total > 0 ? 'flex' : 'none';
-}
-
-window.openCart = () => {
-  renderCartSheet();
-  openSheet('cartSheet');
-};
-
-window.removeCartItem = (idx) => {
-  cart.splice(idx, 1);
-  updateCartBadge();
-  renderCartSheet();
-};
-
-function renderCartSheet() {
-  const total = cart.reduce((s, i) => s + i.unitPrice * i.qty, 0);
-
-  let html = `<div class="sheet-title">🛒 Mi orden</div>`;
-
-  if (cart.length === 0) {
-    html += `<div class="empty-state" style="padding:30px 0">
-      <span class="es-emoji">🍕</span>
-      <div class="es-title">Tu orden está vacía</div>
-    </div>`;
-  } else {
-    for (let i = 0; i < cart.length; i++) {
-      const item = cart[i];
-      html += `<div class="cart-item">
-        <div class="ci-info">
-          <div class="ci-name">${item.qty}× ${item.displayName}</div>
-          ${item.modsLabel ? `<div class="ci-mods">${item.modsLabel}</div>` : ''}
-        </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
-          <span class="ci-price">$${(item.unitPrice * item.qty).toFixed(0)}</span>
-          <span class="ci-remove" onclick="removeCartItem(${i})">✕</span>
-        </div>
-      </div>`;
-    }
-
-    html += `<hr class="divider">
-      <div class="order-total-row">
-        <span class="order-total-label">Total</span>
-        <span class="order-total-value">$${total.toFixed(0)}</span>
-      </div>
-      <hr class="divider">
-      <div class="sheet-title" style="font-size:18px;margin-top:8px">Tus datos</div>
-      <div class="form-group">
-        <label class="form-label">Nombre</label>
-        <input class="form-input" id="fieldName" placeholder="¿Cómo te llamas?" autocomplete="name">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Teléfono</label>
-        <input class="form-input" id="fieldPhone" placeholder="10 dígitos" type="tel" autocomplete="tel">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Dirección</label>
-        <input class="form-input" id="fieldAddress" placeholder="Calle, número, colonia" autocomplete="street-address">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Segunda dirección <span style="color:var(--ink3);font-weight:400">(opcional)</span></label>
-        <input class="form-input" id="fieldAddress2" placeholder="Referencias, entre calles…">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Notas <span style="color:var(--ink3);font-weight:400">(opcional)</span></label>
-        <input class="form-input" id="fieldNotes" placeholder="Indicaciones especiales…">
-      </div>
-      <button class="btn-primary" onclick="submitOrder()">
-        <span>📤 Enviar pedido</span>
-        <span class="btn-total">$${total.toFixed(0)}</span>
-      </button>`;
-  }
-
-  document.getElementById('cartSheetContent').innerHTML = html;
-}
-
-// ── ENVIAR PEDIDO ─────────────────────────────────────────────────
-window.submitOrder = async () => {
-  const name     = document.getElementById('fieldName')?.value.trim();
-  const phone    = document.getElementById('fieldPhone')?.value.trim();
-  const address  = document.getElementById('fieldAddress')?.value.trim();
-  const address2 = document.getElementById('fieldAddress2')?.value.trim() || '';
-  const notes    = document.getElementById('fieldNotes')?.value.trim()    || '';
-
-  if (!name)    { showToast('⚠️ Escribe tu nombre');     return; }
-  if (!phone)   { showToast('⚠️ Escribe tu teléfono');   return; }
-  if (!address) { showToast('⚠️ Escribe tu dirección');  return; }
-
-  const total = cart.reduce((s, i) => s + i.unitPrice * i.qty, 0);
-
-  const orderData = {
-    customerName: name,
-    phone,
-    address,
-    address2,
-    notes,
-    total,
-    status:    'PENDING',
-    createdAt: serverTimestamp(),
-    items:     cart.map(item => ({
-      recipeName:             item.recipeName,
-      halfRecipeName:         item.halfRecipeName || null,
-      sizeId:                 item.sizeId,
-      sizeName:               item.sizeName,
-      qty:                    item.qty,
-      unitPrice:              item.unitPrice,
-      removedIngredients:     item.removedIngredients,
-      addedIngredients:       item.addedIngredients,
-      halfRemovedIngredients: item.halfRemovedIngredients,
-      halfAddedIngredients:   item.halfAddedIngredients,
-    })),
-  };
-
+window.submitOrder = async ()=>{
+  const name=document.getElementById('fName')?.value.trim();
+  const phone=document.getElementById('fPhone')?.value.trim();
+  const addr=document.getElementById('fAddr')?.value.trim();
+  const addr2=document.getElementById('fAddr2')?.value.trim()||'';
+  const notes=document.getElementById('fNotes')?.value.trim()||'';
+  if(!name) { showToast('⚠️ Escribe tu nombre');    return; }
+  if(!phone){ showToast('⚠️ Escribe tu teléfono');  return; }
+  if(!addr) { showToast('⚠️ Escribe tu dirección'); return; }
+  const total=cart.reduce((s,i)=>s+i.unitPrice*i.qty,0);
   try {
-    const ref = await addDoc(collection(db, 'portal_orders'), orderData);
-    cart = [];
-    updateCartBadge();
-    closeSheet();
-    startTracking(ref.id);
-  } catch (e) {
-    console.error(e);
-    showToast('❌ Error al enviar. Intenta de nuevo.');
-  }
+    const ref=await addDoc(collection(db,'portal_orders'),{
+      customerName:name,phone,address:addr,address2,notes,total,
+      status:'PENDING',createdAt:serverTimestamp(),
+      items:cart.map(it=>({
+        recipeName:it.recipeName,halfRecipeName:it.halfRecipeName||null,
+        sizeId:it.sizeId,sizeName:it.sizeName,qty:it.qty,unitPrice:it.unitPrice,
+        removedIngredients:it.removedIngredients,addedIngredients:it.addedIngredients,
+        halfRemovedIngredients:it.halfRemovedIngredients,halfAddedIngredients:it.halfAddedIngredients,
+      })),
+    });
+    cart=[]; updateBar(); closeSheet();
+    document.getElementById('menuView').style.display='none';
+    startTracker(ref.id);
+  } catch(e){ showToast('❌ Error al enviar. Intenta de nuevo.'); }
 };
 
-// ── TRACKER ───────────────────────────────────────────────────────
-const STATUS_STEPS = ['PENDING','CONFIRMED','PREPARING','READY','DELIVERED'];
-const STATUS_META  = {
-  PENDING:   { emoji:'🔔', label:'Pedido recibido',      sub:'La pizzería confirmará en breve' },
-  CONFIRMED: { emoji:'✅', label:'Pedido confirmado',    sub:'Ya están preparando tu orden' },
-  PREPARING: { emoji:'👨‍🍳', label:'En preparación',       sub:'Tu pizza está en el horno 🔥' },
-  READY:     { emoji:'🎉', label:'¡Lista para entregar!', sub:'Tu pedido está listo' },
-  DELIVERED: { emoji:'📦', label:'¡Entregado!',           sub:'¡Buen provecho! 🍕' },
-  CANCELLED: { emoji:'❌', label:'Cancelado',             sub:'Tu pedido fue cancelado' },
+const SMETA={
+  PENDING:  {e:'🔔',s:'Pedido recibido',     d:'La pizzería lo confirmará en breve'},
+  CONFIRMED:{e:'✅',s:'Pedido confirmado',    d:'Ya están preparando tu orden'},
+  PREPARING:{e:'👨‍🍳',s:'En preparación',       d:'Tu pizza está en el horno 🔥'},
+  READY:    {e:'🎉',s:'¡Lista para entregar!',d:'Tu pedido está listo'},
+  DELIVERED:{e:'📦',s:'¡Entregado!',          d:'¡Buen provecho! 🍕'},
+  CANCELLED:{e:'❌',s:'Cancelado',            d:'Tu pedido fue cancelado'},
 };
+const STEPS=['PENDING','CONFIRMED','PREPARING','READY','DELIVERED'];
+let unsub=null;
 
-let trackerUnsub = null;
-
-function startTracking(orderId) {
-  document.getElementById('menuView').style.display  = 'none';
-  document.getElementById('tracker').classList.add('visible');
-  document.getElementById('trackerOrderId').textContent = `Pedido #${orderId.slice(-6).toUpperCase()}`;
-
-  if (trackerUnsub) trackerUnsub();
-
-  trackerUnsub = onSnapshot(doc(db, 'portal_orders', orderId), snap => {
-    if (!snap.exists()) return;
-    const status = snap.data().status || 'PENDING';
-    updateTracker(status);
+function startTracker(id){
+  document.getElementById('tracker').classList.add('on');
+  document.getElementById('trId').textContent=`Pedido #${id.slice(-6).toUpperCase()}`;
+  if(unsub)unsub();
+  unsub=onSnapshot(doc(db,'portal_orders',id),snap=>{
+    if(!snap.exists())return; updateTracker(snap.data().status||'PENDING');
   });
 }
-
-function updateTracker(status) {
-  const meta  = STATUS_META[status] || STATUS_META.PENDING;
-  document.getElementById('trackerEmoji').textContent  = meta.emoji;
-  document.getElementById('trackerStatus').textContent = meta.label;
-  document.getElementById('trackerSub').textContent    = meta.sub;
-
-  // Steps visuales
-  const stepIdx = STATUS_STEPS.indexOf(status);
-  let stepsHtml = '';
-  for (let i = 0; i < STATUS_STEPS.length - 1; i++) {
-    const cls = i < stepIdx ? 'done' : i === stepIdx ? 'active' : '';
-    stepsHtml += `<div class="tracker-step ${cls}"></div>`;
-  }
-  document.getElementById('trackerSteps').innerHTML = stepsHtml;
+function updateTracker(st){
+  const m=SMETA[st]||SMETA.PENDING;
+  document.getElementById('trEmoji').textContent=m.e;
+  document.getElementById('trStatus').textContent=m.s;
+  document.getElementById('trSub').textContent=m.d;
+  const idx=STEPS.indexOf(st);
+  document.getElementById('trSteps').innerHTML=STEPS.slice(0,-1).map((_,i)=>
+    `<div class="tr-step ${i<idx?'done':i===idx?'active':''}"></div>`).join('');
 }
 
-// ── SHEET HELPERS ─────────────────────────────────────────────────
-function openSheet(id) {
-  sheet = id;
-  document.getElementById('overlay').classList.add('open');
-  document.getElementById(id).classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
+function openSheet(id){ activeSheet=id; document.getElementById('overlay').classList.add('open'); document.getElementById(id).classList.add('open'); document.body.style.overflow='hidden'; }
+window.closeSheet=()=>{ if(!activeSheet)return; document.getElementById('overlay').classList.remove('open'); document.getElementById(activeSheet).classList.remove('open'); document.body.style.overflow=''; activeSheet=null; };
+function showToast(msg){ const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),2200); }
+const esc=s=>s.replace(/'/g,"\\'");
 
-window.closeSheet = () => {
-  if (!sheet) return;
-  document.getElementById('overlay').classList.remove('open');
-  document.getElementById(sheet).classList.remove('open');
-  document.body.style.overflow = '';
-  sheet = null;
-};
-
-// ── TOAST ─────────────────────────────────────────────────────────
-function showToast(msg) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 2200);
-}
-
-// ── ARRANCAR ──────────────────────────────────────────────────────
 loadMenu();
 </script>
 </body>
