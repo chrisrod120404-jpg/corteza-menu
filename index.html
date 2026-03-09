@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Corteza Oculta — Ordena en línea</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg:       #0F0D0A;
+    --bg2:      #1A1714;
+    --bg3:      #242018;
+    --gold:     #E8B84B;
+    --gold-dim: #E8B84B22;
+    --terra:    #E07840;
+    --white:    #F0EDE6;
+    --ink2:     #B8B0A4;
+    --ink3:     #6B6560;
+    --line:     #2E2A25;
+    --green:    #4CAF7D;
+    --green-dim:#4CAF7D22;
+    --red:      #E05555;
+    --red-dim:  #E0555522;
+    --radius:   14px;
+    --radius-sm:10px;
+    --radius-pill: 999px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--bg);
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .header-logo { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 900; color: var(--gold); letter-spacing: -0.5px; }
+  .header-sub  { font-size: 12px; color: var(--ink3); font-weight: 400; }
+  .cart-btn {
+    margin-left: auto;
+    background: var(--gold-dim);
+    border: 1.5px solid var(--gold);
+    color: var(--gold);
+    border-radius: var(--radius-sm);
+    padding: 8px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background .15s;
+  }
+  .cart-btn:hover { background: var(--gold); color: var(--bg); }
+  .cart-badge {
+    background: var(--terra);
+    color: white;
+    border-radius: 99px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 1px 6px;
+    min-width: 20px;
+    text-align: center;
+  }
+
+  /* ── SECCIONES ── */
+  .section { padding: 20px 16px 0; }
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* ── CARDS DE PRODUCTO ── */
+  .products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+  .product-card {
+    background: var(--bg2);
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius);
+    padding: 14px;
+    cursor: pointer;
+    transition: border-color .15s, transform .1s;
+    position: relative;
+    overflow: hidden;
+  }
+  .product-card:hover  { border-color: var(--gold); transform: translateY(-2px); }
+  .product-card:active { transform: scale(.97); }
+  .product-card .emoji { font-size: 36px; line-height: 1; margin-bottom: 8px; display: block; }
+  .product-card .name  { font-size: 14px; font-weight: 700; color: var(--white); line-height: 1.3; margin-bottom: 4px; }
+  .product-card .price-from { font-size: 12px; color: var(--gold); font-weight: 600; }
+  .product-card .unavailable-overlay {
+    position: absolute; inset: 0;
+    background: rgba(15,13,10,.8);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; color: var(--ink3);
+    border-radius: var(--radius);
+  }
+
+  /* ── BOTTOM SHEET ── */
+  .overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.7);
+    z-index: 200;
+    opacity: 0; pointer-events: none;
+    transition: opacity .25s;
+  }
+  .overlay.open { opacity: 1; pointer-events: all; }
+  .sheet {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--bg2);
+    border-radius: 24px 24px 0 0;
+    border-top: 1.5px solid var(--line);
+    z-index: 201;
+    max-height: 92dvh;
+    overflow-y: auto;
+    transform: translateY(100%);
+    transition: transform .3s cubic-bezier(.32,.72,0,1);
+    padding-bottom: env(safe-area-inset-bottom, 16px);
+  }
+  .sheet.open { transform: translateY(0); }
+  .sheet-handle {
+    width: 40px; height: 4px;
+    background: var(--line);
+    border-radius: 99px;
+    margin: 12px auto 4px;
+  }
+  .sheet-content { padding: 0 18px 24px; }
+  .sheet-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px; font-weight: 700;
+    color: var(--white);
+    margin: 10px 0 4px;
+  }
+  .sheet-sub { font-size: 13px; color: var(--ink2); margin-bottom: 18px; }
+
+  /* ── STEP LABELS ── */
+  .step-label {
+    display: flex; align-items: center; gap: 10px;
+    margin: 18px 0 10px;
+  }
+  .step-num {
+    width: 24px; height: 24px;
+    background: var(--gold);
+    border-radius: 99px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 800; color: var(--bg);
+    flex-shrink: 0;
+  }
+  .step-text { font-size: 14px; font-weight: 700; color: var(--white); }
+  .step-hint { font-size: 12px; color: var(--gold); font-weight: 600; }
+
+  /* ── SIZE CHIPS ── */
+  .chips-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip {
+    background: var(--bg3);
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 8px 14px;
+    font-size: 13px; font-weight: 600; color: var(--ink2);
+    cursor: pointer;
+    transition: all .15s;
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    min-width: 80px;
+  }
+  .chip.selected  { border-color: var(--gold); background: var(--gold-dim); color: var(--gold); }
+  .chip:hover:not(.selected) { border-color: var(--ink3); color: var(--white); }
+  .chip .chip-price { font-size: 15px; font-weight: 800; }
+  .chip .chip-name  { font-size: 11px; font-weight: 500; opacity: .8; }
+
+  /* ── TOGGLE ½ y ½ ── */
+  .half-toggle {
+    background: var(--bg3);
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    display: flex; align-items: center; gap: 12px;
+    cursor: pointer;
+    transition: all .15s;
+    margin-bottom: 4px;
+  }
+  .half-toggle.active { border-color: var(--green); background: var(--green-dim); }
+  .half-toggle-text { flex: 1; }
+  .half-toggle-text .ht-title { font-size: 14px; font-weight: 700; color: var(--white); }
+  .half-toggle-text .ht-sub   { font-size: 12px; color: var(--ink3); }
+  .half-toggle.active .ht-title { color: var(--green); }
+  .half-toggle.active .ht-sub   { color: var(--green); }
+  .toggle-switch {
+    width: 44px; height: 24px;
+    background: var(--line);
+    border-radius: 99px;
+    position: relative;
+    transition: background .2s;
+    flex-shrink: 0;
+  }
+  .half-toggle.active .toggle-switch { background: var(--green); }
+  .toggle-thumb {
+    position: absolute;
+    width: 18px; height: 18px;
+    background: var(--white);
+    border-radius: 99px;
+    top: 3px; left: 3px;
+    transition: left .2s;
+  }
+  .half-toggle.active .toggle-thumb { left: 23px; }
+
+  /* ── INGREDIENTES (quitar / agregar) ── */
+  .ing-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+  .ing-chip {
+    background: var(--bg3);
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius-pill);
+    padding: 6px 12px;
+    font-size: 13px; font-weight: 600; color: var(--ink2);
+    cursor: pointer;
+    display: flex; align-items: center; gap: 5px;
+    transition: all .15s;
+  }
+  .ing-chip.removed { border-color: var(--red); background: var(--red-dim); color: var(--red); }
+  .ing-chip.added   { border-color: var(--gold); background: var(--gold-dim); color: var(--gold); }
+  .ing-chip.added .extra-tag {
+    background: var(--gold);
+    color: var(--bg);
+    font-size: 10px;
+    font-weight: 800;
+    padding: 1px 5px;
+    border-radius: 99px;
+  }
+
+  /* ── CANTIDAD ── */
+  .qty-row { display: flex; align-items: center; gap: 14px; }
+  .qty-btn {
+    width: 36px; height: 36px;
+    background: var(--bg3);
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius-sm);
+    color: var(--white);
+    font-size: 20px; font-weight: 300;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .1s;
+  }
+  .qty-btn:hover { background: var(--gold-dim); border-color: var(--gold); }
+  .qty-val { font-size: 20px; font-weight: 800; color: var(--white); min-width: 28px; text-align: center; }
+
+  /* ── SEGUNDA MITAD PICKER ── */
+  .halves-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 8px;
+  }
+  .half-card {
+    background: var(--bg3);
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius);
+    padding: 10px 6px;
+    text-align: center;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .half-card.selected { border-color: var(--green); background: var(--green-dim); }
+  .half-card .hc-emoji { font-size: 28px; display: block; margin-bottom: 4px; }
+  .half-card .hc-name  { font-size: 11px; font-weight: 700; color: var(--ink2); line-height: 1.3; }
+  .half-card.selected .hc-name { color: var(--green); }
+
+  /* ── BOTÓN PRINCIPAL ── */
+  .btn-primary {
+    width: 100%;
+    background: var(--gold);
+    color: var(--bg);
+    border: none;
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px; font-weight: 800;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: space-between;
+    transition: opacity .15s;
+    margin-top: 18px;
+  }
+  .btn-primary:disabled { opacity: .4; cursor: not-allowed; }
+  .btn-primary:not(:disabled):hover { opacity: .9; }
+  .btn-primary.green { background: var(--green); }
+  .btn-total { font-size: 18px; font-weight: 900; }
+
+  .btn-secondary {
+    background: var(--bg3);
+    border: 1.5px solid var(--line);
+    color: var(--ink2);
+    border-radius: var(--radius);
+    padding: 12px 18px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px; font-weight: 700;
+    cursor: pointer;
+    transition: background .15s;
+  }
+  .btn-secondary:hover { background: var(--line); color: var(--white); }
+
+  /* ── CARRITO ── */
+  .cart-item {
+    background: var(--bg3);
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius);
+    padding: 12px;
+    margin-bottom: 8px;
+    display: flex; align-items: flex-start; gap: 10px;
+  }
+  .ci-info { flex: 1; }
+  .ci-name { font-size: 14px; font-weight: 700; color: var(--white); }
+  .ci-mods { font-size: 12px; color: var(--ink3); margin-top: 2px; line-height: 1.4; }
+  .ci-price { font-size: 15px; font-weight: 800; color: var(--gold); }
+  .ci-remove { color: var(--ink3); cursor: pointer; font-size: 18px; line-height: 1; padding: 2px; }
+  .ci-remove:hover { color: var(--red); }
+
+  /* ── FORMULARIO ── */
+  .form-group { margin-bottom: 14px; }
+  .form-label { font-size: 12px; font-weight: 700; color: var(--ink2); margin-bottom: 6px; display: block; letter-spacing: .5px; text-transform: uppercase; }
+  .form-input {
+    width: 100%;
+    background: var(--bg3);
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 11px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    color: var(--white);
+    outline: none;
+    transition: border-color .15s;
+  }
+  .form-input:focus { border-color: var(--gold); }
+  .form-input::placeholder { color: var(--ink3); }
+
+  /* ── TRACKER DE ESTADO ── */
+  .tracker {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+    text-align: center;
+    gap: 12px;
+  }
+  .tracker.visible { display: flex; }
+  .tracker-emoji  { font-size: 64px; animation: bounce .8s ease infinite alternate; }
+  .tracker-status { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: var(--gold); }
+  .tracker-sub    { font-size: 14px; color: var(--ink2); max-width: 280px; }
+  .tracker-steps  { display: flex; gap: 6px; margin-top: 8px; }
+  .tracker-step {
+    width: 28px; height: 6px;
+    border-radius: 99px;
+    background: var(--line);
+    transition: background .4s;
+  }
+  .tracker-step.done { background: var(--gold); }
+  .tracker-step.active { background: var(--terra); }
+
+  @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-8px); } }
+
+  /* ── SPINNER ── */
+  .spinner {
+    width: 40px; height: 40px;
+    border: 3px solid var(--line);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+    margin: 60px auto;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── EXTRAS RESUMEN ── */
+  .extras-summary {
+    background: var(--gold-dim);
+    border: 1.5px solid var(--gold);
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    font-size: 13px; font-weight: 700; color: var(--gold);
+    margin-top: 8px;
+  }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 90px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--bg3);
+    border: 1.5px solid var(--gold);
+    color: var(--white);
+    padding: 10px 18px;
+    border-radius: var(--radius-pill);
+    font-size: 14px; font-weight: 600;
+    opacity: 0;
+    transition: all .3s;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 300;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ── VACÍO ── */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--ink3);
+  }
+  .empty-state .es-emoji { font-size: 48px; margin-bottom: 12px; display: block; }
+  .empty-state .es-title { font-size: 16px; font-weight: 700; color: var(--ink2); margin-bottom: 4px; }
+
+  /* ── SEPARADORES ── */
+  .divider { border: none; border-top: 1px solid var(--line); margin: 14px 0; }
+  .order-total-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 0;
+  }
+  .order-total-label { font-size: 16px; font-weight: 700; color: var(--white); }
+  .order-total-value { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 900; color: var(--gold); }
+
+  /* responsive */
+  @media (max-width: 400px) {
+    .products-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div>
+    <div class="header-logo">🍕 Corteza Oculta</div>
+    <div class="header-sub">Ordena en línea</div>
+  </div>
+  <button class="cart-btn" onclick="openCart()" id="cartBtn" style="display:none">
+    🛒 Mi orden <span class="cart-badge" id="cartBadge">0</span>
+  </button>
+</header>
+
+<!-- CONTENIDO PRINCIPAL -->
+<div id="menuView">
+  <div class="spinner" id="menuSpinner"></div>
+  <div id="menuContent" style="display:none"></div>
+</div>
+
+<!-- TRACKER DE ESTADO (post-pedido) -->
+<div class="tracker" id="tracker">
+  <div class="tracker-emoji" id="trackerEmoji">🔔</div>
+  <div class="tracker-status" id="trackerStatus">Pedido enviado</div>
+  <div class="tracker-sub" id="trackerSub">Espera la confirmación de la pizzería</div>
+  <div class="tracker-steps" id="trackerSteps"></div>
+  <div style="margin-top:20px; font-size:13px; color:var(--ink3)" id="trackerOrderId"></div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- OVERLAY -->
+<div class="overlay" id="overlay" onclick="closeSheet()"></div>
+
+<!-- SHEET: PICKER DE PRODUCTO -->
+<div class="sheet" id="productSheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-content" id="productSheetContent"></div>
+</div>
+
+<!-- SHEET: CARRITO -->
+<div class="sheet" id="cartSheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-content" id="cartSheetContent"></div>
+</div>
+
+<!-- Firebase -->
+<script type="module">
+import { initializeApp }                       from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, doc, collection,
+         getDoc, onSnapshot, addDoc,
+         serverTimestamp }                     from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+// ── CONFIG ────────────────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey:            "AIzaSyDKGTeRqhcmAUuSg7dAGZ9bmLIlNpolCo4",
+  authDomain:        "cortezaoculta-c87348f6.firebaseapp.com",
+  projectId:         "cortezaoculta-c87348f6",
+  storageBucket:     "cortezaoculta-c87348f6.firebasestorage.app",
+  messagingSenderId: "252563057583",
+  appId:             "1:252563057583:android:928f3b1fddb462ef6bdd5a",
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+
+// ── ESTADO ────────────────────────────────────────────────────────
+let menuData   = { recipes: [], sizes: [], categories: [] };
+let cart       = [];
+let activeOrder = null;   // { orderId } después de confirmar
+let sheet      = null;    // qué sheet está abierto
+
+// Estado del picker actual
+let picker = {
+  recipe:         null,
+  selectedSize:   null,
+  qty:            1,
+  removed:        new Set(),
+  added:          new Set(),   // nombres de extras
+  halfMode:       false,
+  halfRecipe:     null,
+  halfRemoved:    new Set(),
+  halfAdded:      new Set(),
+  step:           'main',   // 'main' | 'half'
+};
+
+const EXTRA_PRICE = 15;
+
+// ── CARGAR MENÚ ───────────────────────────────────────────────────
+async function loadMenu() {
+  try {
+    const [recipesSnap, sizesSnap, catsSnap] = await Promise.all([
+      getDoc(doc(db, 'menu', 'recipes')),
+      getDoc(doc(db, 'menu', 'sizes')),
+      getDoc(doc(db, 'menu', 'categories')),
+    ]);
+
+    if (!recipesSnap.exists()) {
+      document.getElementById('menuSpinner').style.display = 'none';
+      document.getElementById('menuContent').innerHTML = `
+        <div class="empty-state">
+          <span class="es-emoji">😴</span>
+          <div class="es-title">Menú no disponible</div>
+          <div>La pizzería aún no ha publicado su menú</div>
+        </div>`;
+      document.getElementById('menuContent').style.display = 'block';
+      return;
+    }
+
+    menuData.recipes    = recipesSnap.data().items || [];
+    menuData.sizes      = sizesSnap.exists()  ? sizesSnap.data().items  : [];
+    menuData.categories = catsSnap.exists()   ? catsSnap.data().items   : [];
+
+    renderMenu();
+  } catch (e) {
+    console.error(e);
+    document.getElementById('menuSpinner').innerHTML =
+      '<div class="empty-state"><span class="es-emoji">⚠️</span><div class="es-title">Error al cargar el menú</div></div>';
+  }
+}
+
+// ── RENDER MENÚ ───────────────────────────────────────────────────
+function renderMenu() {
+  document.getElementById('menuSpinner').style.display = 'none';
+
+  // Agrupar por categoría
+  const groups = {};
+  for (const recipe of menuData.recipes) {
+    if (!groups[recipe.category]) groups[recipe.category] = [];
+    groups[recipe.category].push(recipe);
+  }
+
+  const catMeta = {};
+  for (const c of menuData.categories) catMeta[c.name] = c;
+
+  let html = '';
+  for (const [catName, recipes] of Object.entries(groups)) {
+    const meta  = catMeta[catName] || { emoji: '🍽️', label: catName };
+    html += `<div class="section">
+      <div class="section-title">${meta.emoji} ${meta.label}</div>
+      <div class="products-grid">`;
+
+    for (const recipe of recipes) {
+      const minPrice  = minPriceFor(recipe);
+      const emoji     = recipe.emoji || meta.emoji;
+      const available = recipe.available !== false;
+
+      html += `<div class="product-card" onclick="${available ? `openProductPicker('${recipe.id}')` : ''}">
+        <span class="emoji">${emoji}</span>
+        <div class="name">${recipe.name}</div>
+        <div class="price-from">Desde $${minPrice}</div>
+        ${!available ? '<div class="unavailable-overlay">🚫 Agotado</div>' : ''}
+      </div>`;
+    }
+    html += '</div></div>';
+  }
+
+  document.getElementById('menuContent').innerHTML = html;
+  document.getElementById('menuContent').style.display = 'block';
+}
+
+function minPriceFor(recipe) {
+  const prices = recipe.prices || {};
+  const vals   = Object.values(prices).filter(v => v > 0);
+  return vals.length > 0 ? Math.min(...vals) : 0;
+}
+
+function priceForSize(recipe, sizeId) {
+  return recipe.prices?.[sizeId] || 0;
+}
+
+// ── ABRIR PICKER DE PRODUCTO ──────────────────────────────────────
+window.openProductPicker = function(recipeId) {
+  const recipe = menuData.recipes.find(r => r.id === recipeId);
+  if (!recipe) return;
+
+  picker = {
+    recipe,
+    selectedSize:  menuData.sizes[1] || menuData.sizes[0],
+    qty:           1,
+    removed:       new Set(),
+    added:         new Set(),
+    halfMode:      false,
+    halfRecipe:    null,
+    halfRemoved:   new Set(),
+    halfAdded:     new Set(),
+    step:          'main',
+  };
+
+  renderProductSheet();
+  openSheet('productSheet');
+};
+
+function renderProductSheet() {
+  const { recipe, selectedSize, qty, removed, added, halfMode } = picker;
+  const canHalf   = recipe.category === 'PIZZA';
+  const basePrice = selectedSize ? priceForSize(recipe, selectedSize.id) : 0;
+  const extraTotal = added.size * EXTRA_PRICE;
+  const total     = (basePrice + extraTotal) * qty;
+
+  // Ingredientes de esta receta
+  const recipeIngIds = new Set((recipe.ingredients || []).map(i => i.ingredientId));
+  // Extras disponibles: ingredientes de otras recetas que no están en esta
+  const extraPool = getExtraPool(recipeIngIds);
+
+  let html = `
+    <div class="sheet-title">${recipe.emoji || '🍕'} ${recipe.name}</div>
+    <div class="sheet-sub">${recipe.category}</div>`;
+
+  // Toggle ½ y ½ solo pizzas
+  if (canHalf) {
+    html += `<div class="half-toggle ${halfMode ? 'active' : ''}" onclick="toggleHalfMode()">
+      <span style="font-size:22px">🍕</span>
+      <div class="half-toggle-text">
+        <div class="ht-title">Pizza ½ y ½</div>
+        <div class="ht-sub">${halfMode ? 'Activo · elige la 2ª mitad abajo' : 'Dividir en dos sabores diferentes'}</div>
+      </div>
+      <div class="toggle-switch"><div class="toggle-thumb"></div></div>
+    </div>`;
+  }
+
+  // Tamaños
+  html += `<div class="step-label"><div class="step-num">1</div><div class="step-text">Elige el tamaño</div></div>
+    <div class="chips-row">`;
+  for (const size of menuData.sizes) {
+    const price = priceForSize(recipe, size.id);
+    if (price <= 0) continue;
+    const sel = selectedSize?.id === size.id;
+    html += `<div class="chip ${sel ? 'selected' : ''}" onclick="selectSize('${size.id}')">
+      <span class="chip-price">$${price}</span>
+      <span class="chip-name">${size.name}</span>
+    </div>`;
+  }
+  html += '</div>';
+
+  // Extras
+  if (extraPool.length > 0) {
+    html += `<div class="step-label">
+      <div class="step-num">2</div>
+      <div class="step-text">¿Algo extra?</div>
+      <div class="step-hint">• $${EXTRA_PRICE} c/u</div>
+    </div><div class="ing-grid">`;
+    for (const name of extraPool) {
+      const isAdded = added.has(name);
+      html += `<div class="ing-chip ${isAdded ? 'added' : ''}" onclick="toggleExtra('${name}')">
+        ${isAdded ? '✓' : '+'} ${name}
+        ${isAdded ? `<span class="extra-tag">+$${EXTRA_PRICE}</span>` : ''}
+      </div>`;
+    }
+    html += '</div>';
+    if (added.size > 0) {
+      html += `<div class="extras-summary">Extras: ${added.size} × $${EXTRA_PRICE} = +$${added.size * EXTRA_PRICE}</div>`;
+    }
+  }
+
+  // Segunda mitad (si halfMode activo)
+  if (halfMode) {
+    const otherPizzas = menuData.recipes.filter(r =>
+      r.id !== recipe.id && r.category === 'PIZZA' && r.available !== false);
+
+    html += `<div class="step-label">
+      <div class="step-num">${extraPool.length > 0 ? 3 : 2}</div>
+      <div class="step-text">Elige la 2ª mitad</div>
+    </div>
+    <div class="halves-grid">`;
+    for (const r of otherPizzas) {
+      const sel = picker.halfRecipe?.id === r.id;
+      html += `<div class="half-card ${sel ? 'selected' : ''}" onclick="selectHalf('${r.id}')">
+        <span class="hc-emoji">${r.emoji || '🍕'}</span>
+        <div class="hc-name">${r.name}</div>
+      </div>`;
+    }
+    html += '</div>';
+
+    // Extras para 2ª mitad
+    if (picker.halfRecipe) {
+      const halfIngIds = new Set((picker.halfRecipe.ingredients || []).map(i => i.ingredientId));
+      const halfExtras = getExtraPool(halfIngIds);
+      if (halfExtras.length > 0) {
+        html += `<div class="step-label">
+          <div class="step-num" style="background:var(--green)">+</div>
+          <div class="step-text">¿Extra en ${picker.halfRecipe.name}?</div>
+          <div class="step-hint">• $${EXTRA_PRICE} c/u</div>
+        </div><div class="ing-grid">`;
+        for (const name of halfExtras) {
+          const isAdded = picker.halfAdded.has(name);
+          html += `<div class="ing-chip ${isAdded ? 'added' : ''}" onclick="toggleHalfExtra('${name}')">
+            ${isAdded ? '✓' : '+'} ${name}
+            ${isAdded ? `<span class="extra-tag">+$${EXTRA_PRICE}</span>` : ''}
+          </div>`;
+        }
+        html += '</div>';
+      }
+    }
+  }
+
+  // Cantidad
+  const qtyStep = (() => {
+    let n = 2;
+    if (extraPool.length > 0) n++;
+    if (halfMode) n++;
+    return n;
+  })();
+  html += `<div class="step-label"><div class="step-num">${qtyStep}</div><div class="step-text">Cantidad</div></div>
+    <div class="qty-row">
+      <button class="qty-btn" onclick="changeQty(-1)">−</button>
+      <span class="qty-val" id="qtyVal">${qty}</span>
+      <button class="qty-btn" onclick="changeQty(1)">+</button>
+    </div>`;
+
+  // Calcular total real
+  const unitPrice = calcUnitPrice();
+  const finalTotal = unitPrice * qty;
+
+  // Botón agregar
+  const halfReady = !halfMode || picker.halfRecipe !== null;
+  html += `<button class="btn-primary ${halfMode ? 'green' : ''}"
+    onclick="addToCart()" ${!selectedSize || !halfReady ? 'disabled' : ''}>
+    <span>✅ Agregar al pedido</span>
+    <span class="btn-total">$${finalTotal}</span>
+  </button>`;
+
+  document.getElementById('productSheetContent').innerHTML = html;
+}
+
+function calcUnitPrice() {
+  const { recipe, selectedSize, added, halfRecipe, halfAdded, halfMode } = picker;
+  if (!selectedSize) return 0;
+  const firstPrice  = priceForSize(recipe, selectedSize.id);
+  const secondPrice = (halfMode && halfRecipe) ? priceForSize(halfRecipe, selectedSize.id) : 0;
+  const base        = halfMode ? Math.max(firstPrice, secondPrice) : firstPrice;
+  const totalExtras = (added.size + (halfMode ? halfAdded.size : 0)) * EXTRA_PRICE;
+  return base + totalExtras;
+}
+
+// Construye la lista de nombres de ingredientes disponibles como extras
+// (ingredientes que aparecen en otras recetas pero no en la receta actual)
+function getExtraPool(recipeIngIds) {
+  const seen = new Set();
+  const result = [];
+  for (const r of menuData.recipes) {
+    for (const line of (r.ingredients || [])) {
+      if (!recipeIngIds.has(line.ingredientId) && !seen.has(line.ingredientId)) {
+        seen.add(line.ingredientId);
+        // Usar el ID como nombre de fallback — se reemplaza cuando la app suba nombres
+        result.push(line.ingredientName || line.ingredientId);
+      }
+    }
+  }
+  return result.slice(0, 12); // limitar a 12 para no saturar la UI
+}
+
+// ── HANDLERS ─────────────────────────────────────────────────────
+window.toggleHalfMode = () => { picker.halfMode = !picker.halfMode; picker.halfRecipe = null; renderProductSheet(); };
+window.selectSize     = (id) => { picker.selectedSize = menuData.sizes.find(s => s.id === id); renderProductSheet(); };
+window.selectHalf     = (id) => { picker.halfRecipe = menuData.recipes.find(r => r.id === id); picker.halfAdded = new Set(); renderProductSheet(); };
+window.changeQty      = (d) => { picker.qty = Math.max(1, Math.min(20, picker.qty + d)); renderProductSheet(); };
+
+window.toggleExtra = (name) => {
+  if (picker.added.has(name)) picker.added.delete(name); else picker.added.add(name);
+  renderProductSheet();
+};
+window.toggleHalfExtra = (name) => {
+  if (picker.halfAdded.has(name)) picker.halfAdded.delete(name); else picker.halfAdded.add(name);
+  renderProductSheet();
+};
+
+// ── AGREGAR AL CARRITO ────────────────────────────────────────────
+window.addToCart = () => {
+  const { recipe, selectedSize, qty, removed, added, halfMode, halfRecipe, halfRemoved, halfAdded } = picker;
+  if (!selectedSize) return;
+
+  const unitPrice = calcUnitPrice();
+
+  const displayName = halfMode && halfRecipe
+    ? `½ ${recipe.name} + ½ ${halfRecipe.name} — ${selectedSize.name}`
+    : `${recipe.name} — ${selectedSize.name}`;
+
+  const modsLabel = buildModsLabel(removed, added, halfMode, halfRecipe, halfRemoved, halfAdded);
+
+  cart.push({
+    recipeName:             recipe.name,
+    halfRecipeName:         halfMode && halfRecipe ? halfRecipe.name : null,
+    recipeId:               recipe.id,
+    halfRecipeId:           halfMode && halfRecipe ? halfRecipe.id : null,
+    sizeId:                 selectedSize.id,
+    sizeName:               selectedSize.name,
+    qty,
+    unitPrice,
+    removedIngredients:     [...removed],
+    addedIngredients:       [...added],
+    halfRemovedIngredients: halfMode ? [...halfRemoved] : [],
+    halfAddedIngredients:   halfMode ? [...halfAdded]   : [],
+    displayName,
+    modsLabel,
+  });
+
+  updateCartBadge();
+  closeSheet();
+  showToast(`✅ ${recipe.name} agregada`);
+};
+
+function buildModsLabel(removed, added, halfMode, halfRecipe, halfRemoved, halfAdded) {
+  const parts = [];
+  if (removed.size > 0)    parts.push('Sin ' + [...removed].join(', sin '));
+  if (added.size > 0)      parts.push('+ ' + [...added].join(', +'));
+  if (halfMode && halfRecipe) {
+    if (halfRemoved.size > 0) parts.push(`½${halfRecipe.name}: Sin ` + [...halfRemoved].join(', sin '));
+    if (halfAdded.size > 0)   parts.push(`½${halfRecipe.name}: + ` + [...halfAdded].join(', +'));
+  }
+  return parts.join(' · ');
+}
+
+// ── CARRITO ───────────────────────────────────────────────────────
+function updateCartBadge() {
+  const total = cart.reduce((s, i) => s + i.qty, 0);
+  document.getElementById('cartBadge').textContent = total;
+  document.getElementById('cartBtn').style.display = total > 0 ? 'flex' : 'none';
+}
+
+window.openCart = () => {
+  renderCartSheet();
+  openSheet('cartSheet');
+};
+
+window.removeCartItem = (idx) => {
+  cart.splice(idx, 1);
+  updateCartBadge();
+  renderCartSheet();
+};
+
+function renderCartSheet() {
+  const total = cart.reduce((s, i) => s + i.unitPrice * i.qty, 0);
+
+  let html = `<div class="sheet-title">🛒 Mi orden</div>`;
+
+  if (cart.length === 0) {
+    html += `<div class="empty-state" style="padding:30px 0">
+      <span class="es-emoji">🍕</span>
+      <div class="es-title">Tu orden está vacía</div>
+    </div>`;
+  } else {
+    for (let i = 0; i < cart.length; i++) {
+      const item = cart[i];
+      html += `<div class="cart-item">
+        <div class="ci-info">
+          <div class="ci-name">${item.qty}× ${item.displayName}</div>
+          ${item.modsLabel ? `<div class="ci-mods">${item.modsLabel}</div>` : ''}
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+          <span class="ci-price">$${(item.unitPrice * item.qty).toFixed(0)}</span>
+          <span class="ci-remove" onclick="removeCartItem(${i})">✕</span>
+        </div>
+      </div>`;
+    }
+
+    html += `<hr class="divider">
+      <div class="order-total-row">
+        <span class="order-total-label">Total</span>
+        <span class="order-total-value">$${total.toFixed(0)}</span>
+      </div>
+      <hr class="divider">
+      <div class="sheet-title" style="font-size:18px;margin-top:8px">Tus datos</div>
+      <div class="form-group">
+        <label class="form-label">Nombre</label>
+        <input class="form-input" id="fieldName" placeholder="¿Cómo te llamas?" autocomplete="name">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Teléfono</label>
+        <input class="form-input" id="fieldPhone" placeholder="10 dígitos" type="tel" autocomplete="tel">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Dirección</label>
+        <input class="form-input" id="fieldAddress" placeholder="Calle, número, colonia" autocomplete="street-address">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Segunda dirección <span style="color:var(--ink3);font-weight:400">(opcional)</span></label>
+        <input class="form-input" id="fieldAddress2" placeholder="Referencias, entre calles…">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notas <span style="color:var(--ink3);font-weight:400">(opcional)</span></label>
+        <input class="form-input" id="fieldNotes" placeholder="Indicaciones especiales…">
+      </div>
+      <button class="btn-primary" onclick="submitOrder()">
+        <span>📤 Enviar pedido</span>
+        <span class="btn-total">$${total.toFixed(0)}</span>
+      </button>`;
+  }
+
+  document.getElementById('cartSheetContent').innerHTML = html;
+}
+
+// ── ENVIAR PEDIDO ─────────────────────────────────────────────────
+window.submitOrder = async () => {
+  const name     = document.getElementById('fieldName')?.value.trim();
+  const phone    = document.getElementById('fieldPhone')?.value.trim();
+  const address  = document.getElementById('fieldAddress')?.value.trim();
+  const address2 = document.getElementById('fieldAddress2')?.value.trim() || '';
+  const notes    = document.getElementById('fieldNotes')?.value.trim()    || '';
+
+  if (!name)    { showToast('⚠️ Escribe tu nombre');     return; }
+  if (!phone)   { showToast('⚠️ Escribe tu teléfono');   return; }
+  if (!address) { showToast('⚠️ Escribe tu dirección');  return; }
+
+  const total = cart.reduce((s, i) => s + i.unitPrice * i.qty, 0);
+
+  const orderData = {
+    customerName: name,
+    phone,
+    address,
+    address2,
+    notes,
+    total,
+    status:    'PENDING',
+    createdAt: serverTimestamp(),
+    items:     cart.map(item => ({
+      recipeName:             item.recipeName,
+      halfRecipeName:         item.halfRecipeName || null,
+      sizeId:                 item.sizeId,
+      sizeName:               item.sizeName,
+      qty:                    item.qty,
+      unitPrice:              item.unitPrice,
+      removedIngredients:     item.removedIngredients,
+      addedIngredients:       item.addedIngredients,
+      halfRemovedIngredients: item.halfRemovedIngredients,
+      halfAddedIngredients:   item.halfAddedIngredients,
+    })),
+  };
+
+  try {
+    const ref = await addDoc(collection(db, 'portal_orders'), orderData);
+    cart = [];
+    updateCartBadge();
+    closeSheet();
+    startTracking(ref.id);
+  } catch (e) {
+    console.error(e);
+    showToast('❌ Error al enviar. Intenta de nuevo.');
+  }
+};
+
+// ── TRACKER ───────────────────────────────────────────────────────
+const STATUS_STEPS = ['PENDING','CONFIRMED','PREPARING','READY','DELIVERED'];
+const STATUS_META  = {
+  PENDING:   { emoji:'🔔', label:'Pedido recibido',      sub:'La pizzería confirmará en breve' },
+  CONFIRMED: { emoji:'✅', label:'Pedido confirmado',    sub:'Ya están preparando tu orden' },
+  PREPARING: { emoji:'👨‍🍳', label:'En preparación',       sub:'Tu pizza está en el horno 🔥' },
+  READY:     { emoji:'🎉', label:'¡Lista para entregar!', sub:'Tu pedido está listo' },
+  DELIVERED: { emoji:'📦', label:'¡Entregado!',           sub:'¡Buen provecho! 🍕' },
+  CANCELLED: { emoji:'❌', label:'Cancelado',             sub:'Tu pedido fue cancelado' },
+};
+
+let trackerUnsub = null;
+
+function startTracking(orderId) {
+  document.getElementById('menuView').style.display  = 'none';
+  document.getElementById('tracker').classList.add('visible');
+  document.getElementById('trackerOrderId').textContent = `Pedido #${orderId.slice(-6).toUpperCase()}`;
+
+  if (trackerUnsub) trackerUnsub();
+
+  trackerUnsub = onSnapshot(doc(db, 'portal_orders', orderId), snap => {
+    if (!snap.exists()) return;
+    const status = snap.data().status || 'PENDING';
+    updateTracker(status);
+  });
+}
+
+function updateTracker(status) {
+  const meta  = STATUS_META[status] || STATUS_META.PENDING;
+  document.getElementById('trackerEmoji').textContent  = meta.emoji;
+  document.getElementById('trackerStatus').textContent = meta.label;
+  document.getElementById('trackerSub').textContent    = meta.sub;
+
+  // Steps visuales
+  const stepIdx = STATUS_STEPS.indexOf(status);
+  let stepsHtml = '';
+  for (let i = 0; i < STATUS_STEPS.length - 1; i++) {
+    const cls = i < stepIdx ? 'done' : i === stepIdx ? 'active' : '';
+    stepsHtml += `<div class="tracker-step ${cls}"></div>`;
+  }
+  document.getElementById('trackerSteps').innerHTML = stepsHtml;
+}
+
+// ── SHEET HELPERS ─────────────────────────────────────────────────
+function openSheet(id) {
+  sheet = id;
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById(id).classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+window.closeSheet = () => {
+  if (!sheet) return;
+  document.getElementById('overlay').classList.remove('open');
+  document.getElementById(sheet).classList.remove('open');
+  document.body.style.overflow = '';
+  sheet = null;
+};
+
+// ── TOAST ─────────────────────────────────────────────────────────
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+// ── ARRANCAR ──────────────────────────────────────────────────────
+loadMenu();
+</script>
+</body>
+</html>
