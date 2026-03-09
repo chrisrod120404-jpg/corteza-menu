@@ -513,7 +513,7 @@ const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
 
 // ── ESTADO ────────────────────────────────────────────────────────
-let menuData   = { recipes: [], sizes: [], categories: [] };
+let menuData   = { recipes: [], sizes: [], categories: [], ingredients: [] };
 let cart       = [];
 let activeOrder = null;   // { orderId } después de confirmar
 let sheet      = null;    // qué sheet está abierto
@@ -537,10 +537,11 @@ const EXTRA_PRICE = 15;
 // ── CARGAR MENÚ ───────────────────────────────────────────────────
 async function loadMenu() {
   try {
-    const [recipesSnap, sizesSnap, catsSnap] = await Promise.all([
+    const [recipesSnap, sizesSnap, catsSnap, ingsSnap] = await Promise.all([
       getDoc(doc(db, 'menu', 'recipes')),
       getDoc(doc(db, 'menu', 'sizes')),
       getDoc(doc(db, 'menu', 'categories')),
+      getDoc(doc(db, 'menu', 'ingredients')),
     ]);
 
     if (!recipesSnap.exists()) {
@@ -555,9 +556,10 @@ async function loadMenu() {
       return;
     }
 
-    menuData.recipes    = recipesSnap.data().items || [];
-    menuData.sizes      = sizesSnap.exists()  ? sizesSnap.data().items  : [];
-    menuData.categories = catsSnap.exists()   ? catsSnap.data().items   : [];
+    menuData.recipes     = recipesSnap.data().items || [];
+    menuData.sizes       = sizesSnap.exists()  ? sizesSnap.data().items  : [];
+    menuData.categories  = catsSnap.exists()   ? catsSnap.data().items   : [];
+    menuData.ingredients = ingsSnap.exists()   ? ingsSnap.data().items   : [];
 
     renderMenu();
   } catch (e) {
@@ -782,20 +784,16 @@ function calcUnitPrice() {
 }
 
 // Construye la lista de nombres de ingredientes disponibles como extras
-// (ingredientes que aparecen en otras recetas pero no en la receta actual)
+// Usa el catálogo de ingredientes subido por la app (nombres reales)
 function getExtraPool(recipeIngIds) {
-  const seen = new Set();
-  const result = [];
-  for (const r of menuData.recipes) {
-    for (const line of (r.ingredients || [])) {
-      if (!recipeIngIds.has(line.ingredientId) && !seen.has(line.ingredientId)) {
-        seen.add(line.ingredientId);
-        // Usar el ID como nombre de fallback — se reemplaza cuando la app suba nombres
-        result.push(line.ingredientName || line.ingredientId);
-      }
-    }
-  }
-  return result.slice(0, 12); // limitar a 12 para no saturar la UI
+  // ingIdToName: mapa de id → nombre del catálogo
+  const ingIdToName = {};
+  for (const ing of menuData.ingredients) ingIdToName[ing.id] = ing.name;
+
+  return menuData.ingredients
+    .filter(ing => !recipeIngIds.has(ing.id))
+    .map(ing => ing.name)
+    .slice(0, 16);
 }
 
 // ── HANDLERS ─────────────────────────────────────────────────────
