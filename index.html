@@ -232,7 +232,7 @@ const db = getFirestore(initializeApp({
   projectId:         "cortezaoculta-c87348f6",
   storageBucket:     "cortezaoculta-c87348f6.firebasestorage.app",
   messagingSenderId: "252563057583",
-  appId:             "1:252563057583:android:928f3b1fddb462ef6bdd5a",
+  appId:             "1:252563057583:web:57acbb3c316aa2c36bdd5a",
 }));
 
 const EXTRA = 15;
@@ -506,7 +506,7 @@ window.submitOrder = async ()=>{
     cart=[]; updateBar(); closeSheet();
     document.getElementById('menuView').style.display='none';
     startTracker(ref.id);
-  } catch(e){ console.error('submitOrder error:', e); showToast('❌ ' + e.message); }
+  } catch(e){ showToast('❌ Error al enviar. Intenta de nuevo.'); }
 };
 
 const SMETA={
