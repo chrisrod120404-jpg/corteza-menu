@@ -506,7 +506,13 @@ window.submitOrder = async ()=>{
     cart=[]; updateBar(); closeSheet();
     document.getElementById('menuView').style.display='none';
     startTracker(ref.id);
-  } catch(e){ showToast('❌ Error al enviar. Intenta de nuevo.'); }
+  } catch(e){ console.error('Error submitOrder:', e);
+    const msg = e?.code === 'permission-denied'
+        ? '❌ Sin permiso. Contacta al administrador.'
+        : e?.code === 'unavailable'
+        ? '❌ Sin conexión. Verifica tu internet.'
+        : '❌ Error al enviar: ' + (e?.message || 'intenta de nuevo');
+    showToast(msg); }
 };
 
 const SMETA={
