@@ -492,6 +492,11 @@ window.submitOrder = async ()=>{
   if(!phone){ showToast('⚠️ Escribe tu teléfono');  return; }
   if(!addr) { showToast('⚠️ Escribe tu dirección'); return; }
   const total=cart.reduce((s,i)=>s+i.unitPrice*i.qty,0);
+  const btn = document.querySelector('#checkoutContent .btn-gold');
+    if (btn) btn.disabled = true;  // bloquear mientras se envía
+    // ... resto del código ...
+    // Al final del catch:
+    if (btn) btn.disabled = false;
   try {
     const ref=await addDoc(collection(db,'portal_orders'),{
       customerName:name,phone,address:addr,address2,notes,total,
