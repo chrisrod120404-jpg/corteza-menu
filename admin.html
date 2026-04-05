@@ -313,9 +313,9 @@ async function loadMenu(){
       getDoc(doc(db,'menu','sizes')),
       getDoc(doc(db,'menu','categories')),
     ]);
-    menu.recipes=rS.exists()?rS.data().items||[];
-    menu.sizes=sS.exists()?sS.data().items||[];
-    menu.categories=cS.exists()?cS.data().items||[];
+    menu.recipes=rS.exists()?rS.data().items||[]:[];
+    menu.sizes=sS.exists()?sS.data().items||[]:[];
+    menu.categories=cS.exists()?cS.data().items||[]:[];
   }catch(e){console.error('loadMenu',e)}
 }
 
