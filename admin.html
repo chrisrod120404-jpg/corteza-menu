@@ -248,7 +248,7 @@ body{background:var(--bg);color:var(--cream);font-family:'Instrument Sans',sans-
 import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import{getAuth,GoogleAuthProvider,signInWithPopup,onAuthStateChanged,signOut as fbSignOut}
   from'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import{getFirestore,doc,collection,getDoc,onSnapshot,updateDoc,query,orderBy,limit}
+import{getFirestore,doc,collection,getDoc,onSnapshot,updateDoc,deleteDoc,query,orderBy,limit}
   from'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 import{getStorage,ref,uploadBytesResumable,getDownloadURL,deleteObject}
   from'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
@@ -373,6 +373,11 @@ function renderOrders(orders){
         <select class="oc-select" onchange="updateStatus('${o.id}',this.value)">
           ${STATUS_OPTS.map(s=>`<option value="${s}" ${o.status===s?'selected':''}>${STATUS_LABELS[s]}</option>`).join('')}
         </select>
+        <button class="btn btn-ghost" style="color:var(--ember3);border-color:rgba(212,82,30,.3)" onclick="deleteOrder('${o.id}')" title="Eliminar">🗑 Eliminar</button>
+      </div>
+    </div>`;
+          ${STATUS_OPTS.map(s=>`<option value="${s}" ${o.status===s?'selected':''}>${STATUS_LABELS[s]}</option>`).join('')}
+        </select>
       </div>
     </div>`;
   }
@@ -385,6 +390,14 @@ window.updateStatus=async(id,status)=>{
     await updateDoc(doc(db,'portal_orders',id),{status});
     showToast(`✅ Estado actualizado: ${STATUS_LABELS[status]}`);
   }catch(e){showToast('❌ Error al actualizar')}
+};
+
+window.deleteOrder=async(id)=>{
+  if(!confirm('¿Eliminar este pedido? Esta acción no se puede deshacer.'))return;
+  try{
+    await deleteDoc(doc(db,'portal_orders',id));
+    showToast('🗑 Pedido eliminado');
+  }catch(e){showToast('❌ Error al eliminar')}
 };
 
 // ── PRODUCTS ──────────────────────────────────
