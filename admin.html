@@ -376,10 +376,6 @@ function renderOrders(orders){
         <button class="btn btn-ghost" style="color:var(--ember3);border-color:rgba(212,82,30,.3)" onclick="deleteOrder('${o.id}')" title="Eliminar">🗑 Eliminar</button>
       </div>
     </div>`;
-          ${STATUS_OPTS.map(s=>`<option value="${s}" ${o.status===s?'selected':''}>${STATUS_LABELS[s]}</option>`).join('')}
-        </select>
-      </div>
-    </div>`;
   }
   html+='</div>';
   el.innerHTML=html;
